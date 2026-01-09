@@ -77,7 +77,7 @@ export function HeroSection() {
   return (
     <>
       <section
-        className="relative w-full overflow-hidden h-[50vh]"
+        className="relative w-full overflow-hidden h-[55vh]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -125,15 +125,13 @@ export function HeroSection() {
                   </span>
                 </h1>
 
+
                 <p className="text-lg md:text-xl text-white/90 font-light max-w-2xl mx-auto">
                   {slides[index].subtitle}
                 </p>
               </motion.div>
             </AnimatePresence>
 
-            <p className="text-base md:text-lg text-white/80 leading-relaxed mt-4 max-w-2xl mx-auto">
-              Discover exceptional properties with our curated collection of modern homes, luxury condos, and stunning estates.
-            </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 justify-center mt-6">

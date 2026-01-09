@@ -1,22 +1,36 @@
-# TODO: Move Footer and Header to Root Layout
+# Task: Make Airbnb-format search icon responsive
 
-## Task: Move Footer and Header to rootlayout
+## Understanding
+- Current header has a search bar with rounded-full styling
+- Airbnb-style search typically features a pill-shaped search button with magnifying glass
+- Need to make it responsive: icon-only on mobile, expandable pill on desktop
 
-### Plan:
-1. Create a client-side layout wrapper component (since root layout is server component)
-2. Move Footer to the layout (it's simple with no props)
-3. Keep Header in page.tsx since it requires props/state specific to home page
-4. Update layout to use the client wrapper with Footer
+## Plan
 
-### Steps:
-- [x] Read and understand current file structure
-- [x] Create client-side layout wrapper component
-- [x] Update app/layout.tsx to use the wrapper and include Footer
-- [x] Remove Footer from app/page.tsx
-- [x] Verify Footer appears on all pages (Build passed successfully)
+### Phase 1: Header Updates ✅ COMPLETED
+1. **Transform search bar to Airbnb-style expandable button** ✅
+   - Create pill-shaped search button with magnifying glass icon ✅
+   - On desktop: Expand to full search bar when clicked ✅
+   - On mobile: Show as icon-only button that opens search modal/drawer ✅
 
-### Notes:
-- Header requires props (searchTerm, onSearchChange, onFiltersOpen) that are page-specific
-- Header will remain in page.tsx for the home page
-- Footer will be moved to layout.tsx for all pages
+2. **Responsive breakpoints** ✅
+   - Mobile (< sm): Icon-only search button with "Search..." text, opens overlay
+   - Tablet/Desktop (sm+): Expandable pill-shaped search bar
+
+3. **Maintain current functionality** ✅
+   - Keep MapPin icon for location input ✅
+   - Keep search term state management ✅
+   - Keep filters integration ✅
+
+### Phase 2: Implementation Files
+- `components/header.tsx` - Main header component with search ✅ COMPLETED
+
+### Phase 3: Testing
+- Verify responsive behavior at all breakpoints - MANUAL TESTING NEEDED
+- Ensure search functionality works correctly - MANUAL TESTING NEEDED
+- Test animations and transitions - Uses framer-motion ✅
+
+## Dependencies
+- No new dependencies needed
+- Uses existing UI components and framer-motion (from hero-section) ✅
 
