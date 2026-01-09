@@ -199,7 +199,7 @@ export default function Home() {
                   placeholder="Search title..."
                   value={titleFilter}
                   onChange={(e) => setTitleFilter(e.target.value)}
-                  className="pl-9 h-10 rounded-lg"
+                  className="pl-9 h-10 rounded-full"
                 />
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function Home() {
                   placeholder="Search location..."
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
-                  className="pl-9 h-10 rounded-lg"
+                  className="pl-9 h-10 rounded-full"
                 />
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function Home() {
                   placeholder="Min price"
                   value={minPrice || ""}
                   onChange={(e) => setMinPrice(Number(e.target.value))}
-                  className="pl-9 h-10 rounded-lg"
+                  className="pl-9 h-10 rounded-full"
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function Home() {
                   placeholder="Max price"
                   value={maxPrice || ""}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="pl-9 h-10 rounded-lg"
+                  className="pl-9 h-10 rounded-full"
                 />
               </div>
             </div>
@@ -267,7 +267,7 @@ export default function Home() {
                   setMinPrice(0)
                   setMaxPrice(10000000)
                 }}
-                className="w-full h-10 rounded-lg gap-2"
+                className="w-full h-10 rounded-full gap-2"
               >
                 <X className="h-4 w-4" />
                 Clear

@@ -77,7 +77,7 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
           {/* Left Column - Image and Details */}
           <div className="lg:col-span-2 space-y-8">
             {/* Hero Image */}
-            <div className="relative overflow-hidden rounded-xl bg-muted">
+            <div className="relative overflow-hidden rounded-2xl bg-muted">
               <div className="aspect-video relative">
                 <img
                   src={listing.image || "/placeholder.svg"}
@@ -99,21 +99,21 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
 
             {/* Features Grid */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-lg border border-border p-4">
+              <div className="rounded-full border border-border p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Bed className="h-5 w-5 text-primary" />
                   <p className="text-sm text-muted-foreground">Bedrooms</p>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{listing.beds}</p>
               </div>
-              <div className="rounded-lg border border-border p-4">
+              <div className="rounded-full border border-border p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Bath className="h-5 w-5 text-primary" />
                   <p className="text-sm text-muted-foreground">Bathrooms</p>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{listing.baths}</p>
               </div>
-              <div className="rounded-lg border border-border p-4">
+              <div className="rounded-full border border-border p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Ruler className="h-5 w-5 text-primary" />
                   <p className="text-sm text-muted-foreground">Area</p>
@@ -180,13 +180,13 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
                 <div className="space-y-3">
                   <Button
                     onClick={() => setShowApplicationModal(true)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold rounded-lg transition-all duration-200"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold rounded-full transition-all duration-200"
                   >
                     Apply Now
                   </Button>
                   <Button
                     variant="outline"
-                    className="w-full h-12 text-base gap-2 bg-white hover:bg-secondary/50 rounded-lg transition-colors"
+                    className="w-full h-12 text-base gap-2 bg-white hover:bg-secondary/50 rounded-full transition-colors"
                   >
                     <Share2 className="h-4 w-4" />
                     Share

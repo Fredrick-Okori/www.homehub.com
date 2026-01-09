@@ -27,7 +27,7 @@ export function ListingCard({ listing, isLiked, onLike, onApply }: ListingCardPr
   return (
     <Link href={`/listing/${listing.id}`}>
       <div className="group cursor-pointer">
-        <div className="relative overflow-hidden rounded-xl bg-muted mb-3">
+        <div className="relative overflow-hidden rounded-2xl bg-muted mb-3">
           <div className="aspect-square overflow-hidden relative">
             <img
               src={listing.image || "/placeholder.svg"}
@@ -105,7 +105,7 @@ export function ListingCard({ listing, isLiked, onLike, onApply }: ListingCardPr
                 onApply(listing.id)
               }}
               size="sm"
-              className="rounded-lg text-xs h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="rounded-full text-xs h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Apply
             </Button>

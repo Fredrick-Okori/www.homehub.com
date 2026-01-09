@@ -52,7 +52,7 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
           <button
             onClick={handleClose}
             disabled={submitted}
-            className="absolute right-4 top-4 rounded-lg p-1 hover:bg-muted transition-colors disabled:opacity-50"
+            className="absolute right-4 top-4 rounded-full p-1 hover:bg-muted transition-colors disabled:opacity-50"
           >
             <X className="h-5 w-5 text-muted-foreground" />
           </button>
@@ -73,7 +73,7 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
                     required
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="mt-2"
+                    className="mt-2 rounded-full"
                   />
                 </div>
 
@@ -85,7 +85,7 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-2"
+                    className="mt-2 rounded-full"
                   />
                 </div>
 
@@ -97,7 +97,7 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
                     required
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="mt-2"
+                    className="mt-2 rounded-full"
                   />
                 </div>
 
@@ -108,13 +108,13 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                    className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                   />
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 transition-all duration-200 active:scale-95"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 transition-all duration-200 active:scale-95 rounded-full"
                 >
                   Submit Application
                 </Button>
@@ -134,3 +134,4 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
     </div>
   )
 }
+
