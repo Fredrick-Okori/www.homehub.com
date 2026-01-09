@@ -1,0 +1,29 @@
+# Robots.txt for HomeHub
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://homehub.com/sitemap.xml
+
+# Disallow private/admin paths
+Disallow: /api/
+Disallow: /_next/
+Disallow: /private/
+
+# Crawl-delay for respecting server resources
+Crawl-delay: 10
+
+# Googlebot specific rules
+User-agent: Googlebot
+Allow: /
+Sitemap: https://homehub.com/sitemap.xml
+
+# Bingbot specific rules
+User-agent: Bingbot
+Allow: /
+Sitemap: https://homehub.com/sitemap.xml
+
+# Other search bots
+User-agent: *
+Allow: /
+
