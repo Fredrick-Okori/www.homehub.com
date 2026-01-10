@@ -280,7 +280,15 @@ export default function Home() {
           {filteredListings.map((listing) => (
             <ListingCard
               key={listing.id}
-              listing={listing}
+              id={String(listing.id)}
+              title={listing.title}
+              price={listing.price}
+              location={listing.location}
+              beds={listing.beds}
+              baths={listing.baths}
+              area={listing.area}
+              image={listing.image}
+              type={listing.type as 'Buy' | 'Rent'}
               isLiked={likedListings.includes(listing.id)}
               onLike={toggleLike}
               onApply={setSelectedApplication}

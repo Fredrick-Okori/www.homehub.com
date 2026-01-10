@@ -2,6 +2,7 @@ import type React from "react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { SearchProvider } from "@/components/search-context"
 
 export default function PublicLayout({
   children,
@@ -10,9 +11,11 @@ export default function PublicLayout({
 }) {
   return (
     <LayoutWrapper>
-      
-      {children}
-     
+      <SearchProvider>
+        <Header />
+        {children}
+        <Footer />
+      </SearchProvider>
     </LayoutWrapper>
   )
 }

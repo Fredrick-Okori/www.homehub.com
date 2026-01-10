@@ -1,21 +1,24 @@
-"use client"
+'use client';
 
-import { Footer } from "@/components/footer"
-import type React from "react"
-import { Header } from "@/components/header"
-import { SearchProvider } from "@/components/search-context"
+import React from 'react';
+import { ThemeProvider } from '@/components/theme-provider';
 
 interface LayoutWrapperProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
   return (
-    <SearchProvider>
-      <Header />
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       {children}
-      <Footer />
-    </SearchProvider>
-  )
+    </ThemeProvider>
+  );
 }
+
+export default LayoutWrapper;
 
