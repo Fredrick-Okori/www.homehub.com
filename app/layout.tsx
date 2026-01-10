@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Urbanist } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { LayoutWrapper } from "@/components/layout-wrapper"
 import "./globals.css"
 
 const urbanist = Urbanist({ subsets: ["latin"], display: "swap", preload: true })
@@ -15,6 +14,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://homehub.com"),
   title: {
     default: "HomeHub - Modern House Listings & Real Estate Platform",
     template: "%s | HomeHub",
@@ -115,12 +115,10 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#f20051" />
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
-      <body className={`${urbanist.className} antialiased`}>
-        <LayoutWrapper>
-          {children}
-          <Analytics />
-        </LayoutWrapper>
-      </body>
+  <body className={`${urbanist.className} antialiased`}>
+    {children}
+    <Analytics />
+  </body>
     </html>
   )
 }

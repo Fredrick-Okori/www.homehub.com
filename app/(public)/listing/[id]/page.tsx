@@ -1,4 +1,3 @@
-import { Metadata } from "next"
 import { ListingDetailClient } from "./listing-detail"
 
 const mockListings = [
@@ -124,53 +123,15 @@ const mockListings = [
   },
 ]
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params
-  const listing = mockListings.find((l) => l.id === Number.parseInt(id))
-  
-  if (!listing) {
-    return {
-      title: "Property Not Found",
-      description: "The requested property could not be found.",
-    }
-  }
-
-  return {
-    title: listing.title,
-    description: listing.description,
-    openGraph: {
-      title: `${listing.title} - HomeHub`,
-      description: listing.description,
-      images: [
-        {
-          url: listing.image || "/placeholder.jpg",
-          width: 1200,
-          height: 630,
-          alt: listing.title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${listing.title} - HomeHub`,
-      description: listing.description,
-      images: [listing.image || "/placeholder.jpg"],
-    },
-  }
-}
-
-export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const listing = mockListings.find((l) => l.id === Number.parseInt(id))
+export default function ListingPage({ params }: { params: { id: string } }) {
+  const listing = mockListings.find((l) => l.id === parseInt(params.id))
 
   if (!listing) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Property not found</h1>
-          <a href="/" className="mt-4 inline-block text-primary hover:underline">
-            Back to listings
-          </a>
+          <h1 className="text-2xl font-bold mb-2">Listing not found</h1>
+          <p className="text-muted-foreground">The property you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     )

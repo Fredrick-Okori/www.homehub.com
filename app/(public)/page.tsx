@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { MapPin, DollarSign, Home as HomeIcon, Map, X } from "lucide-react"
 import { FiltersDrawer } from "@/components/filters-drawer"
 import { ListingCard } from "@/components/listing-card"
@@ -9,6 +8,7 @@ import { useSearch } from "@/components/search-context"
 import { HeroSection } from "@/components/hero-section"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useState } from "react"
 
 const mockListings = [
   {
@@ -290,7 +290,7 @@ export default function Home() {
 
         {filteredListings.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 py-12">
-            <MapPin className="mb-4 h-12 w-12 text-muted-foreground" />
+            <Map className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-lg font-semibold text-foreground">No properties found</p>
             <p className="mt-2 text-muted-foreground">Try adjusting your filters</p>
           </div>

@@ -11,8 +11,9 @@ const nextConfig = {
   poweredByHeader: false,
   // Enable React strict mode for better development
   reactStrictMode: true,
-  // Optimize production builds
-  swcMinify: true,
+  turbopack: {
+    root: ".",
+  },
   // Headers for caching and security
   async headers() {
     return [

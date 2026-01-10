@@ -1,74 +1,20 @@
-# Task: Make Airbnb-format search icon responsive
+# Dashboard Layout Setup
 
-## Understanding
-- Current header has a search bar with rounded-full styling
-- Airbnb-style search typically features a pill-shaped search button with magnifying glass
-- Need to make it responsive: icon-only on mobile, expandable pill on desktop
+## Status: Complete
 
-## Plan
+Removed all `useAuth` and `admin-auth-context` dependencies from dashboard layout to allow building the UI first.
 
-### Phase 1: Header Updates ✅ COMPLETED
-1. **Transform search bar to Airbnb-style expandable button** ✅
-   - Create pill-shaped search button with magnifying glass icon ✅
-   - On desktop: Expand to full search bar when clicked ✅
-   - On mobile: Show as full-width search bar on top ✅
+## Changes Made
 
-2. **Responsive breakpoints** ✅
-   - Mobile (< sm): Full search bar on top with filters button
-   - Tablet/Desktop (sm+): Expandable pill-shaped search bar
+- [x] Updated `app/(dashboard)/admin/layout.tsx` - Removed `useAuth` import and `AdminAuthProvider`
+- [x] Updated `app/(admin-auth)/admin/layout.tsx` - Simplified to pass through children
+- [x] Updated `app/admin/layout.tsx` - Simplified to pass through children
+- [x] Updated `components/admin-header.tsx` - Removed `useAuth` import, using static "Admin" user
 
-3. **Maintain current functionality** ✅
-   - Keep MapPin icon for location input ✅
-   - Keep search term state management ✅
-   - Keep filters integration ✅
+## To Implement Later
 
-4. **Bug Fixes** ✅
-   - Fixed duplicate key warning in nav items
-
-### Phase 2: SEO & Optimization ✅ COMPLETED
-1. **Enhanced metadata** ✅
-   - Added viewport configuration for responsive design
-   - Added comprehensive OpenGraph tags for social sharing
-   - Added Twitter card metadata
-   - Added keywords for search engines
-   - Added author, creator, publisher metadata
-
-2. **Page-specific SEO** ✅
-   - Home page metadata (handled in root layout)
-   - Listing detail page with dynamic generateMetadata function (server component)
-   - Separated client components from server-side metadata
-
-3. **Performance optimizations** ✅
-   - Enabled compression
-   - Removed poweredByHeader for security
-   - Added SWC minification
-   - Added cache headers for static assets
-   - Added security headers (X-DNS-Prefetch-Control, X-Content-Type-Options, etc.)
-   - Added font preconnect and dns-prefetch
-   - Added mobile web app capabilities
-
-4. **PWA Support** ✅
-   - Created site.webmanifest with app metadata
-   - Created robots.txt for search engine crawling
-
-### Phase 3: Rounded-full Styling ✅ COMPLETED
-Updated all input fields and UI elements to use rounded-full:
-- `app/page.tsx` - Filter inputs and Clear button
-- `app/listing/[id]/listing-detail.tsx` - Feature cards, hero image, buttons
-- `components/filters-drawer.tsx` - All buttons, range sliders, property type buttons
-- `components/application-modal.tsx` - Close button, inputs, submit button
-- `components/listing-card.tsx` - Card container, Apply button
-
-## Files Modified
-- `components/header.tsx` - Airbnb-style responsive search
-- `app/layout.tsx` - Enhanced SEO metadata
-- `app/listing/[id]/page.tsx` - Server component with generateMetadata
-- `app/listing/[id]/listing-detail.tsx` - Client component for listing details
-- `app/page.tsx` - Filter controls with rounded-full styling
-- `components/filters-drawer.tsx` - Rounded-full buttons and sliders
-- `components/application-modal.tsx` - Rounded-full inputs and buttons
-- `components/listing-card.tsx` - Rounded-full card and button
-- `next.config.mjs` - Performance and security headers
-- `public/site.webmanifest` - PWA manifest
-- `public/robots.txt` - Search engine crawling rules
+- Admin authentication context
+- Login page functionality
+- Protected routes
+- User session management
 
