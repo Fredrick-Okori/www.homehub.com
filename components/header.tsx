@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { Search, MapPin, Home, Building2, Key, Users, X } from "lucide-react"
+import { Search, MapPin, Home, Building2, Key, Users, X, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useSearch } from "@/components/search-context"
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -14,6 +15,54 @@ const navItems = [
   { href: "/", label: "Sell", icon: Key },
   { href: "/", label: "Agents", icon: Users },
 ]
+
+// Mobile Navigation Sheet Component
+function MobileNavSheet({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 hover:bg-muted"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+        <SheetHeader className="pb-4 border-b">
+          <SheetTitle className="text-lg font-bold">
+            Home<span className="text-primary">Hub</span>
+          </SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col gap-2 py-6">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <Link
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+              >
+                <Icon className="h-5 w-5" />
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+        <div className="mt-auto pt-4 border-t">
+          <div className="px-4 py-2 text-sm text-muted-foreground">
+            © 2024 HomeHub. All rights reserved.
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
 
 export function Header() {
   const { searchTerm, setSearchTerm, filtersOpen, setFiltersOpen } = useSearch()
@@ -44,7 +93,7 @@ export function Header() {
     <>
       <header className="border-b border-border bg-white sticky top-0 z-50 shadow-sm">
         <div className="mx-auto max-w-7xl px-3 sm:px-4 py-3 sm:py-4">
-          {/* Mobile: Search first, then logo+filters */}
+          {/* Mobile: Search first, then logo+filters+nav */}
           <div className="flex flex-col gap-3 sm:hidden">
             {/* Mobile Search Bar - Always visible on top */}
             <div className="flex items-center gap-2 rounded-full border border-border bg-white shadow-md px-4 py-2.5">
@@ -71,26 +120,29 @@ export function Header() {
               </button>
             </div>
             
-            {/* Logo and Filters row */}
+            {/* Logo, Nav Trigger, and Filters row */}
             <div className="flex items-center justify-between gap-2">
               <div className="text-xl font-bold text-foreground">
                 Home<span className="text-primary">Hub</span>
               </div>
-              <Button
-                onClick={() => setFiltersOpen(true)}
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-secondary text-foreground border border-border h-8"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
-                </svg>
-                <span className="text-xs">Filters</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <MobileNavSheet />
+                <Button
+                  onClick={() => setFiltersOpen(true)}
+                  variant="outline"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-secondary text-foreground border border-border h-8"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                    />
+                  </svg>
+                  <span className="text-xs">Filters</span>
+                </Button>
+              </div>
             </div>
           </div>
 
