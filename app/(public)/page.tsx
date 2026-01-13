@@ -1,3 +1,4 @@
+
 "use client"
 
 import { MapPin, DollarSign, Home as HomeIcon, Map, X } from "lucide-react"
@@ -163,7 +164,7 @@ export default function Home() {
   })
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen">
       <FiltersDrawer
         isOpen={filtersOpen}
         onClose={() => setFiltersOpen(false)}

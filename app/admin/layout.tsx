@@ -13,7 +13,7 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>
