@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { getPresignedUrl } from "@/lib/s3-presigned"
 import {
   Heart,
   MapPin,
@@ -36,12 +37,36 @@ interface ListingDetailClientProps {
     fullDescription: string
     likes: number
     type: string
+    images?: string[] // Optional array of all images
   }
 }
 
 export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   const [isLiked, setIsLiked] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string>(listing.image)
+  const [loadingImage, setLoadingImage] = useState(true)
+
+  // Fetch pre-signed URL for the main image
+  useEffect(() => {
+    const fetchPresignedUrl = async () => {
+      if (listing.image && listing.image.startsWith('http')) {
+        try {
+          const presignedUrl = await getPresignedUrl(listing.image)
+          setImageUrl(presignedUrl)
+        } catch (error) {
+          console.error('Error fetching pre-signed URL:', error)
+          // Keep original URL as fallback
+        } finally {
+          setLoadingImage(false)
+        }
+      } else {
+        setLoadingImage(false)
+      }
+    }
+
+    fetchPresignedUrl()
+  }, [listing.image])
 
   return (
     <main className="min-h-screen bg-white">
@@ -79,11 +104,20 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
             {/* Hero Image */}
             <div className="relative overflow-hidden rounded-2xl bg-muted">
               <div className="aspect-video relative">
-                <img
-                  src={listing.image || "/placeholder.svg"}
-                  alt={listing.title}
-                  className="h-full w-full object-cover"
-                />
+                {loadingImage ? (
+                  <div className="h-full w-full flex items-center justify-center bg-muted">
+                    <div className="text-muted-foreground">Loading image...</div>
+                  </div>
+                ) : (
+                  <img
+                    src={imageUrl || "/placeholder.svg"}
+                    alt={listing.title}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.svg"
+                    }}
+                  />
+                )}
                 <button
                   onClick={() => setIsLiked(!isLiked)}
                   className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 hover:bg-white transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"

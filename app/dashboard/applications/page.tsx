@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { mockApplications } from '@/lib/admin-data';
 import { ApplicationTable } from '@/components/application-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,19 +10,77 @@ import {
   XCircle, 
   Clock,
   Download,
-  Mail
+  Mail,
+  Loader2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { getAllApplications, updateApplicationStatus, type Application } from '@/lib/applications';
+import { toast } from 'sonner';
 
 export default function ApplicationsPage() {
-  const [applications] = React.useState(mockApplications);
+  const [applications, setApplications] = React.useState<Application[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const stats = {
+  // Fetch applications from Supabase
+  React.useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllApplications();
+        setApplications(data);
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        toast.error('Failed to load applications');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+  // Handle approve application
+  const handleApprove = async (id: string) => {
+    try {
+      const success = await updateApplicationStatus(id, 'approved');
+      if (success) {
+        toast.success('Application approved and listing hidden from public view');
+        // Refresh applications
+        const data = await getAllApplications();
+        setApplications(data);
+      } else {
+        toast.error('Failed to approve application. Check console for details.');
+      }
+    } catch (error) {
+      console.error('Error approving application:', error);
+      toast.error('Failed to approve application. Check console for details.');
+    }
+  };
+
+  // Handle reject application
+  const handleReject = async (id: string) => {
+    try {
+      const success = await updateApplicationStatus(id, 'rejected');
+      if (success) {
+        toast.success('Application rejected');
+        // Refresh applications
+        const data = await getAllApplications();
+        setApplications(data);
+      } else {
+        toast.error('Failed to reject application');
+      }
+    } catch (error) {
+      console.error('Error rejecting application:', error);
+      toast.error('Failed to reject application');
+    }
+  };
+
+  const stats = React.useMemo(() => ({
     total: applications.length,
     pending: applications.filter((a) => a.status === 'pending').length,
     approved: applications.filter((a) => a.status === 'approved').length,
     rejected: applications.filter((a) => a.status === 'rejected').length,
-  };
+  }), [applications]);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -121,36 +178,60 @@ export default function ApplicationsPage() {
           <CardTitle>All Applications</CardTitle>
         </CardHeader>
         <CardContent>
-          <ApplicationTable data={applications} />
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <ApplicationTable 
+              data={applications.map((app) => ({
+                id: app.id,
+                listingId: app.listing_id,
+                listingTitle: 'Property Listing', // You may want to join with listings table
+                applicantName: `${app.surname} ${app.given_name}`,
+                applicantEmail: app.email,
+                applicantPhone: app.mobile_number,
+                status: app.status as 'pending' | 'approved' | 'rejected',
+                message: `Applied for listing ${app.listing_id}`,
+                appliedAt: new Date(app.created_at).toLocaleDateString(),
+              }))}
+              fullApplications={applications}
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
+          )}
         </CardContent>
       </Card>
 
       {/* Quick Stats by Property */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Applications by Property</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {Object.entries(
-              applications.reduce((acc, app) => {
-                acc[app.listingTitle] = (acc[app.listingTitle] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
-            ).map(([property, count]) => (
-              <div key={property} className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{property}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {applications.filter((a) => a.listingTitle === property).length} application(s)
-                  </p>
+      {applications.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Applications by Property</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(
+                applications.reduce((acc, app) => {
+                  const listingId = app.listing_id;
+                  acc[listingId] = (acc[listingId] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>)
+              ).map(([listingId, count]) => (
+                <div key={listingId} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Listing {listingId.substring(0, 8)}...</p>
+                    <p className="text-sm text-muted-foreground">
+                      {applications.filter((a) => a.listing_id === listingId).length} application(s)
+                    </p>
+                  </div>
+                  <Badge variant="outline">{count} applications</Badge>
                 </div>
-                <Badge variant="outline">{count} applications</Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

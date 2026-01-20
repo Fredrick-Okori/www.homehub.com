@@ -2,6 +2,8 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Urbanist } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { AuthProvider } from "@/contexts/auth-context"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 const urbanist = Urbanist({ subsets: ["latin"], display: "swap", preload: true })
@@ -102,7 +104,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -116,7 +118,10 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
   <body className={`${urbanist.className} antialiased`}>
-    {children}
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+    <Toaster />
     <Analytics />
   </body>
     </html>

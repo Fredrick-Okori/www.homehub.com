@@ -52,6 +52,11 @@ export function Footer() {
                   List Your Property
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/login" className="hover:text-white/80 transition-colors">
+                  Admin Login
+                </Link>
+              </li>
             </ul>
           </div>
 
