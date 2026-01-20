@@ -1,27 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, memo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { getPresignedUrl } from "@/lib/s3-presigned"
 import {
   Heart,
-  MapPin,
-  Bed,
-  Bath,
-  Ruler,
   ChevronLeft,
   Share2,
   Star,
-  Zap,
   Home,
   Sparkles,
-  Leaf,
   MapPinIcon,
-  PenTool,
+  ShieldCheck,
+  Flag,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ApplicationModal } from "@/components/application-modal"
+import { cn } from "@/lib/utils"
 
 interface ListingDetailClientProps {
   listing: {
@@ -37,7 +35,6 @@ interface ListingDetailClientProps {
     fullDescription: string
     likes: number
     type: string
-    images?: string[] // Optional array of all images
   }
 }
 
@@ -47,16 +44,14 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   const [imageUrl, setImageUrl] = useState<string>(listing.image)
   const [loadingImage, setLoadingImage] = useState(true)
 
-  // Fetch pre-signed URL for the main image
   useEffect(() => {
     const fetchPresignedUrl = async () => {
-      if (listing.image && listing.image.startsWith('http')) {
+      if (listing.image?.startsWith('http')) {
         try {
           const presignedUrl = await getPresignedUrl(listing.image)
           setImageUrl(presignedUrl)
         } catch (error) {
           console.error('Error fetching pre-signed URL:', error)
-          // Keep original URL as fallback
         } finally {
           setLoadingImage(false)
         }
@@ -64,180 +59,171 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
         setLoadingImage(false)
       }
     }
-
     fetchPresignedUrl()
   }, [listing.image])
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3">
+      {/* 1. TOP NAV */}
+      <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2 text-primary hover:bg-primary/10">
-              <ChevronLeft className="h-5 w-5" />
-              <span className="text-sm">Back to listings</span>
+            <Button variant="ghost" size="sm" className="gap-2 hover:bg-gray-100 rounded-full transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="font-semibold text-[#222222]">Back to listings</span>
             </Button>
           </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        {/* Title Section */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground text-balance">{listing.title}</h1>
-          <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" />
-              {listing.location}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-foreground">4.9</span>
-              <span>(187 reviews)</span>
-            </div>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" className="gap-2 underline font-semibold rounded-lg hover:bg-gray-100">
+              <Share2 className="h-4 w-4" /> Share
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 underline font-semibold rounded-lg hover:bg-gray-100"
+              onClick={() => setIsLiked(!isLiked)}
+            >
+              <Heart className={cn("h-4 w-4 transition-colors", isLiked && "fill-[#FF385C] text-[#FF385C]")} />
+              {isLiked ? "Saved" : "Save"}
+            </Button>
           </div>
         </div>
+      </nav>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Left Column - Image and Details */}
+      <div className="mx-auto max-w-7xl px-4 pt-6 md:px-8">
+        {/* 2. TITLE SECTION */}
+        <header className="mb-6">
+          <h1 className="text-[26px] font-semibold text-[#222222] tracking-tight">{listing.title}</h1>
+          <div className="mt-2 flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 fill-current" />
+              <span>4.92</span>
+            </div>
+            <span className="text-gray-300">·</span>
+            <span className="underline cursor-pointer">128 reviews</span>
+            <span className="text-gray-300">·</span>
+            <span className="underline cursor-pointer">{listing.location}</span>
+          </div>
+        </header>
+
+        {/* 3. PHOTO GRID */}
+        <div className="relative mb-8 grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl h-[300px] md:h-[480px]">
+          <div className="col-span-4 row-span-2 relative md:col-span-2">
+             {loadingImage ? (
+                <div className="h-full w-full animate-pulse bg-gray-100" />
+             ) : (
+                <Image src={imageUrl} alt="Main" fill priority className="object-cover hover:brightness-95 transition-all cursor-pointer" />
+             )}
+          </div>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="hidden md:block relative bg-gray-100">
+              <Image src={imageUrl} alt={`View ${i + 1}`} fill className="object-cover hover:brightness-95 transition-all cursor-pointer" />
+            </div>
+          ))}
+        </div>
+
+        {/* 4. MAIN LAYOUT GRID */}
+        <div className="grid gap-12 lg:grid-cols-3 relative">
+          
+          {/* LEFT: CONTENT */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Hero Image */}
-            <div className="relative overflow-hidden rounded-2xl bg-muted">
-              <div className="aspect-video relative">
-                {loadingImage ? (
-                  <div className="h-full w-full flex items-center justify-center bg-muted">
-                    <div className="text-muted-foreground">Loading image...</div>
-                  </div>
-                ) : (
-                  <img
-                    src={imageUrl || "/placeholder.svg"}
-                    alt={listing.title}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder.svg"
-                    }}
-                  />
-                )}
-                <button
-                  onClick={() => setIsLiked(!isLiked)}
-                  className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 hover:bg-white transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
-                >
-                  <Heart
-                    className={`h-5 w-5 transition-all duration-200 ${
-                      isLiked ? "fill-red-500 text-red-500 scale-110" : "text-foreground"
-                    }`}
-                  />
-                </button>
+            <section className="border-b pb-8 flex justify-between items-center">
+              <div>
+                <h2 className="text-[22px] font-semibold">Property details</h2>
+                <p className="text-gray-500 font-normal text-base mt-1">
+                  {listing.beds} beds · {listing.baths} baths · {listing.area.toLocaleString()} sqft
+                </p>
               </div>
-            </div>
+           
+            </section>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-full border border-border p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Bed className="h-5 w-5 text-primary" />
-                  <p className="text-sm text-muted-foreground">Bedrooms</p>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{listing.beds}</p>
-              </div>
-              <div className="rounded-full border border-border p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Bath className="h-5 w-5 text-primary" />
-                  <p className="text-sm text-muted-foreground">Bathrooms</p>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{listing.baths}</p>
-              </div>
-              <div className="rounded-full border border-border p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Ruler className="h-5 w-5 text-primary" />
-                  <p className="text-sm text-muted-foreground">Area</p>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{(listing.area / 1000).toFixed(1)}k sqft</p>
-              </div>
-            </div>
+            <section className="border-b pb-8 space-y-6">
+                <FeatureItem icon={Sparkles} title="Self check-in" desc="Check yourself in with the smartlock." />
+                <FeatureItem icon={MapPinIcon} title="Great location" desc="100% of recent guests gave the location a 5-star rating." />
+                <FeatureItem icon={ShieldCheck} title="Verified security" desc="This listing has verified security features for your safety." />
+            </section>
 
-            {/* About Section */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">About this property</h2>
-              <p className="text-base leading-relaxed text-foreground">{listing.fullDescription}</p>
-            </div>
+            <section className="pb-8">
+              <p className="text-[16px] leading-[24px] text-[#222222] whitespace-pre-line">
+                {listing.fullDescription}
+              </p>
+            </section>
+          </div>
 
-            {/* Key Features */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">Highlights</h2>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Modern Architecture", icon: Home },
-                  { label: "Smart Home Technology", icon: Zap },
-                  { label: "Luxury Finishes", icon: Sparkles },
-                  { label: "Energy Efficient", icon: Leaf },
-                  { label: "Premium Location", icon: MapPinIcon },
-                  { label: "Professional Design", icon: PenTool },
-                ].map((feature, i) => {
-                  const IconComponent = feature.icon
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors"
-                    >
-                      <IconComponent className="h-5 w-5 text-primary flex-shrink-0" />
-                      <span className="text-sm font-medium text-foreground">{feature.label}</span>
+          {/* RIGHT: THE STICKY FLOATING CARD */}
+          <aside className="lg:col-span-1 relative py-10">
+            <div className="sticky top-28 pb-10">
+              <Card className="rounded-2xl border bg-white p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
+                
+                {/* 1. PRICE HEADING */}
+                <div className="mb-4">
+                  <span className="text-[22px] font-bold text-[#222222]">
+                    UGX {(listing.price * 3800).toLocaleString()}
+                  </span>
+                  <span className="text-[#717171] font-normal text-base"> / month</span>
+                </div>
+
+                {/* 2. SOCIAL PROOF & LIKES */}
+                <div className="flex flex-col gap-3 mb-6 border-y py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium text-[#222222]">
+                      <Heart className={cn("h-4 w-4 transition-colors", isLiked ? "fill-[#FF385C] text-[#FF385C]" : "text-gray-400")} />
+                      <span>{isLiked ? listing.likes + 1 : listing.likes} Likes</span>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Booking Card */}
-          <div className="lg:col-span-1">
-            <div className="h-fit sticky top-24">
-              <Card className="p-6 space-y-6 border-2 border-border">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="text-3xl font-bold text-foreground">UGX {(listing.price * 3800).toLocaleString()}</p>
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-border" />
-
-                {/* Interest Counter */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
-                  <Heart className="h-5 w-5 fill-red-500 text-red-500 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">People interested</p>
-                    <p className="text-lg font-bold text-foreground">{isLiked ? listing.likes + 1 : listing.likes}</p>
+                    <div className="flex items-center gap-2 text-sm font-medium text-[#222222]">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span>4.92 Rating</span>
+                    </div>
+                  </div>
+                  
+                  {/* Number of Interests Badge */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex h-7 items-center justify-center rounded-full bg-red-50 px-3 text-[#FF385C] border border-red-100">
+                      <Users className="mr-2 h-3.5 w-3.5" />
+                      <span className="text-[11px] font-bold uppercase tracking-tight">
+                        {listing.likes + 4} people interested
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => setShowApplicationModal(true)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold rounded-full transition-all duration-200"
-                  >
-                    Apply Now
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 text-base gap-2 bg-white hover:bg-secondary/50 rounded-full transition-colors"
-                  >
-                    <Share2 className="h-4 w-4" />
-                    Share
-                  </Button>
+                {/* 3. PROPERTY SPECS BOX */}
+                <div className="rounded-xl border border-gray-300 mb-6 overflow-hidden bg-white">
+                   <div className="grid grid-cols-2 border-b border-gray-300">
+                        <div className="p-3 border-r border-gray-300">
+                            <p className="text-[10px] font-bold uppercase tracking-tight text-[#222222]">Bedrooms</p>
+                            <p className="text-sm font-medium text-[#717171]">{listing.beds} beds</p>
+                        </div>
+                        <div className="p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-tight text-[#222222]">Bathrooms</p>
+                            <p className="text-sm font-medium text-[#717171]">{listing.baths} baths</p>
+                        </div>
+                   </div>
+                   <div className="p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-tight text-[#222222]">Total Area</p>
+                        <p className="text-sm font-medium text-[#717171]">{listing.area.toLocaleString()} sqft</p>
+                   </div>
                 </div>
 
-                {/* Contact Section */}
-                <div className="border-t border-border pt-6 space-y-3">
-                  <p className="text-sm font-semibold text-foreground">Questions about this property?</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Our team of experienced real estate professionals is ready to help. Schedule a viewing or request
-                    more information.
-                  </p>
-                </div>
+                {/* 4. APPLY NOW BUTTON */}
+              
+                <Button  onClick={() => setShowApplicationModal(true)}
+                  className="rounded-lg "
+                  >
+                 Apply Now
+                </Button>
+
+                {/* 5. FOOTER SUBTEXT */}
+                <p className="mt-4 text-center text-[12px] text-[#717171] font-normal leading-tight px-4">
+                  Send your application directly to the property manager for review.
+                </p>
               </Card>
+
+              {/* SECONDARY ACTION */}
+              
             </div>
-          </div>
+          </aside>
+
         </div>
       </div>
 
@@ -251,3 +237,14 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   )
 }
 
+function FeatureItem({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) {
+  return (
+    <div className="flex gap-4">
+        <Icon className="h-6 w-6 mt-1 text-[#222222]" />
+        <div>
+            <p className="font-semibold text-[#222222] text-base">{title}</p>
+            <p className="text-[#717171] text-sm leading-snug">{desc}</p>
+        </div>
+    </div>
+  )
+}

@@ -1,21 +1,13 @@
-
 'use client';
 
-import React from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Bed,
-  Bath,
-  Square,
-  MapPin,
-  Heart,
-  Share2,
-  Eye,
-} from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Heart, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ListingCardProps {
   id: string;
@@ -28,160 +20,132 @@ interface ListingCardProps {
   image: string;
   type: 'Buy' | 'Rent';
   status?: string;
-  // Page-specific props
-  listing?: any;
   isLiked?: boolean;
-  likeCount?: number;
+  likeCount?: number; // Prop for the count
   onLike?: (id: string) => void;
   onApply?: (id: number) => void;
+  index?: number;
 }
 
-export function ListingCard({
+export const ListingCard = memo(function ListingCard({
   id,
   title,
   price,
   location,
   beds,
-  baths,
   area,
   image,
   type,
-  status,
-  likeCount,
-  listing,
   isLiked = false,
+  likeCount = 0,
   onLike,
   onApply,
+  index = 0,
 }: ListingCardProps) {
-  const [favorite, setFavorite] = React.useState(isLiked);
+  const [favorite, setFavorite] = useState(isLiked);
+  const [imgError, setImgError] = useState(false);
 
-  // Sync favorite state with isLiked prop
-  React.useEffect(() => {
-    setFavorite(isLiked);
-  }, [isLiked]);
+  useEffect(() => setFavorite(isLiked), [isLiked]);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setFavorite(!favorite);
-    onLike?.(id); // Pass string ID directly
-  };
+    setFavorite(prev => !prev);
+    onLike?.(id);
+  }, [id, onLike]);
 
-  const handleApply = (e: React.MouseEvent) => {
+  const handleApply = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     onApply?.(Number(id));
-  };
+  }, [id, onApply]);
+
+  // Priority loading for the first 4 cards to improve LCP
+  const isPriority = index < 4;
 
   return (
-    <Card className="overflow-hidden group">
-      <Link href={`/listing/${id}`}>
-        <div className="relative h-48 overflow-hidden bg-muted">
-          <Image
-            src={image}
-            alt={title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              // Hide the image on error
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-            unoptimized={image?.startsWith('http')} // Don't optimize external URLs
-          />
-          <div className="absolute top-3 left-3 flex gap-2">
-            <Badge variant={type === 'Buy' ? 'default' : 'secondary'}>
-              For {type}
-            </Badge>
-            {status && (
-              <Badge variant="outline" className="bg-white/90">
-                {status}
-              </Badge>
-            )}
-          </div>
-          <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleLike}
-            >
-              <Heart
-                className={`h-4 w-4 ${
-                  favorite ? 'fill-red-500 text-red-500' : ''
-                }`}
+    <Card className="group border-none bg-transparent shadow-none">
+      <div className="flex flex-col gap-2">
+        <Link href={`/listing/${id}`} className="relative block group">
+          {/* IMAGE SECTION */}
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
+            {!imgError ? (
+              <Image
+                src={image}
+                alt={title}
+                fill
+                priority={isPriority}
+                loading={isPriority ? 'eager' : 'lazy'}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                onError={() => setImgError(true)}
               />
-            </Button>
-            <Button variant="secondary" size="icon" className="h-8 w-8">
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </Link>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          {price > 0 ? (
-            <div className="font-bold text-xl">
-              ${price.toLocaleString()}
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-secondary/30">
+                <Home className="h-10 w-10 text-muted-foreground/40" />
+              </div>
+            )}
+
+            {/* Top Badge */}
+            <div className="absolute top-3 left-3">
+              <Badge className="bg-white/95 text-black hover:bg-white shadow-sm font-bold border-none px-2 py-0.5 text-[11px] uppercase tracking-wider">
+                {type === 'Buy' ? 'For Sale' : 'For Rent'}
+              </Badge>
             </div>
-          ) : (
-            <div className="font-bold text-xl text-muted-foreground">
-              Price on request
+
+            {/* Heart Toggle on Image */}
+            <button
+              onClick={handleLike}
+              className="absolute top-3 right-3 p-1 transition-transform active:scale-90 z-10"
+              aria-label="Favorite listing"
+            >
+              <Heart 
+                className={cn(
+                  "h-6 w-6 transition-colors drop-shadow-md", 
+                  favorite ? "fill-[#FF385C] text-[#FF385C]" : "text-white/90 fill-black/20"
+                )} 
+              />
+            </button>
+          </div>
+
+          {/* TEXT CONTENT */}
+          <div className="mt-3 flex flex-col space-y-0.5 px-0.5">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold text-[15px] text-[#222222] line-clamp-1 flex-1">
+                {title}
+              </h3>
+              
+              {/* REPLACED STAR WITH LIKES COUNT */}
+              <div className="flex items-center gap-1.5 text-[14px] shrink-0">
+                <Heart className={cn("h-3.5 w-3.5", likeCount > 0 ? "fill-[#FF385C] text-[#FF385C]" : "text-muted-foreground")} />
+                <span className="font-medium text-[#222222]">{likeCount.toLocaleString()}</span>
+              </div>
             </div>
-          )}
-          <Link href={`/listing/${id}`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-        <h3 className="font-semibold text-lg line-clamp-1 mb-1">{title}</h3>
-        {location && location !== "Location not specified" && location.trim() !== "" && (
-          <div className="flex items-center text-sm text-muted-foreground mb-4">
-            <MapPin className="h-4 w-4 mr-1" />
-            {location}
+            
+            <p className="text-[14px] text-[#717171] line-clamp-1">{location}</p>
+            <p className="text-[14px] text-[#717171]">
+              {beds} beds • {area.toLocaleString()} sqft
+            </p>
+
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="font-bold text-[15px] text-[#222222]">${price.toLocaleString()}</span>
+              {type === 'Rent' && <span className="text-[#717171] text-[14px]">/ month</span>}
+            </div>
           </div>
-        )}
-        {likeCount !== undefined && likeCount > 0 && (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-            <Heart className="h-3 w-3 fill-red-500 text-red-500" />
-            <span>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
-          </div>
-        )}
-        {(beds > 0 || baths > 0 || area > 0) && (
-          <div className="flex items-center justify-between text-sm">
-            {beds > 0 && (
-              <div className="flex items-center gap-1">
-                <Bed className="h-4 w-4 text-muted-foreground" />
-                <span>{beds} beds</span>
-              </div>
-            )}
-            {baths > 0 && (
-              <div className="flex items-center gap-1">
-                <Bath className="h-4 w-4 text-muted-foreground" />
-                <span>{baths} baths</span>
-              </div>
-            )}
-            {area > 0 && (
-              <div className="flex items-center gap-1">
-                <Square className="h-4 w-4 text-muted-foreground" />
-                <span>{area.toLocaleString()} sqft</span>
-              </div>
-            )}
-          </div>
-        )}
+        </Link>
+
+        {/* APPLY BUTTON */}
         {onApply && (
           <Button
             variant="outline"
             size="sm"
-            className="w-full mt-3"
+            className="mt-2 w-full rounded-lg border-[#DDDDDD] hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 font-semibold py-5"
             onClick={handleApply}
           >
             Apply Now
           </Button>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
-}
-
-export default ListingCard;
-
+});

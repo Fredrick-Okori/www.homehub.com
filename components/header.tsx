@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Search, MapPin, Home, Building2, Key, Users, X, Menu } from "lucide-react"
+import { Search, MapPin, Home, Building2, Key, Users, X, Menu, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { useSearch } from "@/components/search-context"
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useSearch } from "@/components/search-context"
 
 const navItems = [
   { href: "/", label: "Buy", icon: Home },
@@ -17,7 +17,7 @@ const navItems = [
 ]
 
 // Mobile Navigation Sheet Component
-function MobileNavSheet({ children }: { children: React.ReactNode }) {
+function MobileNavSheet() {
   const [open, setOpen] = useState(false)
 
   return (
@@ -65,8 +65,9 @@ function MobileNavSheet({ children }: { children: React.ReactNode }) {
 }
 
 export function Header() {
-  const { searchTerm, setSearchTerm, filtersOpen, setFiltersOpen } = useSearch()
+  const [searchQuery, setSearchQuery] = useState("")
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
+  const { setFiltersOpen } = useSearch()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const mobileInputRef = useRef<HTMLInputElement>(null)
 
@@ -93,60 +94,41 @@ export function Header() {
     <>
       <header className="border-b border-border bg-white sticky top-0 z-50 shadow-sm">
         <div className="mx-auto max-w-7xl px-3 sm:px-4 py-3 sm:py-4">
-          {/* Mobile: Search first, then logo+filters+nav */}
+          {/* Mobile: Search first, then logo+nav */}
           <div className="flex flex-col gap-3 sm:hidden">
             {/* Mobile Search Bar - Always visible on top */}
             <div className="flex items-center gap-2 rounded-full border border-border bg-white shadow-md px-4 py-2.5">
               <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Input
                 ref={mobileInputRef}
-                placeholder="Search locations..."
+                placeholder="Search properties..."
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:outline-none placeholder:text-muted-foreground text-sm h-auto p-0 flex-1"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button
-                onClick={() => setFiltersOpen(true)}
-                className="p-1.5 bg-muted rounded-full"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
-                </svg>
-              </button>
             </div>
             
-            {/* Logo, Nav Trigger, and Filters row */}
+            {/* Logo and Nav Trigger row */}
             <div className="flex items-center justify-between gap-2">
               <div className="text-xl font-bold text-foreground">
                 Home<span className="text-primary">Hub</span>
               </div>
               <div className="flex items-center gap-2">
-                <MobileNavSheet />
                 <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setFiltersOpen(true)}
-                  variant="outline"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-secondary text-foreground border border-border h-8"
+                  className="h-9 w-9 hover:bg-muted"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                    />
-                  </svg>
-                  <span className="text-xs">Filters</span>
+                  <SlidersHorizontal className="h-5 w-5" />
+                  <span className="sr-only">Filters</span>
                 </Button>
+                <MobileNavSheet />
               </div>
             </div>
           </div>
 
-          {/* Desktop: Logo + Nav + Search + Filters */}
+          {/* Desktop: Logo + Nav + Search */}
           <div className="hidden sm:flex sm:flex-row sm:items-center gap-4">
             {/* Logo */}
             <div className="flex items-center justify-start gap-2 flex-shrink-0">
@@ -214,10 +196,10 @@ export function Header() {
                         <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                         <Input
                           ref={searchInputRef}
-                          placeholder="Search locations..."
+                          placeholder="Search properties..."
                           className="border-0 bg-transparent focus-visible:ring-0 focus-visible:outline-none placeholder:text-muted-foreground text-sm h-auto p-0 flex-1"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
                         />
                         <button
                           onClick={(e) => {
@@ -235,21 +217,15 @@ export function Header() {
               </div>
             </div>
 
-            {/* Desktop Filters Button */}
+            {/* Filter Button */}
             <Button
-              onClick={() => setFiltersOpen(true)}
               variant="outline"
-              className="flex items-center gap-2 rounded-full px-4 lg:px-6 bg-white hover:bg-secondary text-foreground border border-border"
+              size="sm"
+              onClick={() => setFiltersOpen(true)}
+              className="gap-2"
             >
-              <svg className="h-4 sm:h-5 w-4 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                />
-              </svg>
-              <span className="text-sm">Filters</span>
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
             </Button>
           </div>
         </div>

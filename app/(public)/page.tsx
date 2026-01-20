@@ -1,19 +1,18 @@
-
 "use client"
 
-import { MapPin, DollarSign, Home as HomeIcon, Map as MapIcon, X, Loader2 } from "lucide-react"
-import { FiltersDrawer } from "@/components/filters-drawer"
+import { Search, Map as MapIcon, Loader2, SlidersHorizontal } from "lucide-react"
 import { ListingCard } from "@/components/listing-card"
 import { ApplicationModal } from "@/components/application-modal"
-import { useSearch } from "@/components/search-context"
 import { HeroSection } from "@/components/hero-section"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { getPresignedUrls } from "@/lib/s3-presigned"
 import { toggleLike, getUserLikes, getLikeCounts, getLikeCount } from "@/lib/likes"
 import { toast } from "sonner"
+import { FiltersDrawer } from "@/components/filters-drawer"
+import { useSearch } from "@/components/search-context"
 
 interface Listing {
   id: string;
@@ -149,20 +148,54 @@ const mockListings = [
 ]
 
 export default function Home() {
-  const { searchTerm, setSearchTerm, filtersOpen, setFiltersOpen } = useSearch()
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [imageUrlMap, setImageUrlMap] = useState<Map<string, string>>(new Map())
   const [likedListings, setLikedListings] = useState<string[]>([])
   const [likeCounts, setLikeCounts] = useState<Map<string, number>>(new Map())
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000])
-  const [selectedType, setSelectedType] = useState<string | null>(null)
-  const [titleFilter, setTitleFilter] = useState("")
-  const [locationFilter, setLocationFilter] = useState("")
-  const [minPrice, setMinPrice] = useState<number>(0)
-  const [maxPrice, setMaxPrice] = useState<number>(10000000)
+  const [searchQuery, setSearchQuery] = useState("")
+  const { filtersOpen, setFiltersOpen } = useSearch()
   const supabase = createClient()
+
+  // Filter states
+  const [priceRange, setPriceRange] = useState<number[]>([0, 10000000])
+  const [selectedType, setSelectedType] = useState("all")
+  const [minPrice, setMinPrice] = useState("")
+  const [maxPrice, setMaxPrice] = useState("")
+  const [locationFilter, setLocationFilter] = useState("")
+  const [beds, setBeds] = useState<number | null>(null)
+  const [baths, setBaths] = useState<number | null>(null)
+
+  const filters = {
+    priceRange,
+    selectedType,
+    minPrice,
+    maxPrice,
+    locationFilter,
+    beds,
+    baths,
+  }
+
+  const handleFiltersChange = (newFilters: typeof filters) => {
+    setPriceRange(newFilters.priceRange)
+    setSelectedType(newFilters.selectedType)
+    setMinPrice(newFilters.minPrice)
+    setMaxPrice(newFilters.maxPrice)
+    setLocationFilter(newFilters.locationFilter)
+    setBeds(newFilters.beds)
+    setBaths(newFilters.baths)
+  }
+
+  const handleClearFilters = () => {
+    setPriceRange([0, 10000000])
+    setSelectedType("all")
+    setMinPrice("")
+    setMaxPrice("")
+    setLocationFilter("")
+    setBeds(null)
+    setBaths(null)
+  }
 
   // Fetch available listings from Supabase
   useEffect(() => {
@@ -276,27 +309,23 @@ export default function Home() {
     return '/placeholder.svg'
   }
 
-  const filteredListings = listings.filter((listing) => {
-    // Since we don't have price, location, beds, baths, area in DB, we'll filter only by title/search
-    const matchesSearch =
-      listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (listing.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-    const matchesTitle = !titleFilter || listing.title.toLowerCase().includes(titleFilter.toLowerCase())
-    // Location filter won't work since we don't have location in DB, but keep it for UI consistency
-    return matchesSearch && matchesTitle
-  })
+  const filteredListings = useMemo(() => {
+    return listings.filter((listing) => {
+      // Search filter
+      const matchesSearch =
+        listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (listing.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+
+      // Location filter
+      const matchesLocation = !locationFilter || 
+        (listing.title.toLowerCase().includes(locationFilter.toLowerCase()))
+
+      return matchesSearch && matchesLocation
+    })
+  }, [listings, searchQuery, locationFilter])
 
   return (
     <main className="min-h-screen">
-      <FiltersDrawer
-        isOpen={filtersOpen}
-        onClose={() => setFiltersOpen(false)}
-        priceRange={priceRange}
-        onPriceChange={setPriceRange}
-        selectedType={selectedType}
-        onTypeChange={setSelectedType}
-      />
-
       <HeroSection />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
@@ -308,95 +337,28 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Filter Controls */}
+        {/* Search and Filters */}
         <div className="mb-8 p-4 rounded-xl border border-border bg-white shadow-sm">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-            {/* Title Filter */}
-            <div className="col-span-1">
-              <label htmlFor="title-filter" className="sr-only">
-                Search by title
-              </label>
-              <div className="relative">
-                <HomeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="title-filter"
-                  placeholder="Search title..."
-                  value={titleFilter}
-                  onChange={(e) => setTitleFilter(e.target.value)}
-                  className="pl-9 h-10 rounded-full"
-                />
-              </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search properties..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10 rounded-full"
+              />
             </div>
-
-            {/* Location Filter */}
-            <div className="col-span-1">
-              <label htmlFor="location-filter" className="sr-only">
-                Search by location
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="location-filter"
-                  placeholder="Search location..."
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                  className="pl-9 h-10 rounded-full"
-                />
-              </div>
-            </div>
-
-            {/* Min Price Filter */}
-            <div className="col-span-1">
-              <label htmlFor="min-price" className="sr-only">
-                Minimum price
-              </label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="min-price"
-                  type="number"
-                  placeholder="Min price"
-                  value={minPrice || ""}
-                  onChange={(e) => setMinPrice(Number(e.target.value))}
-                  className="pl-9 h-10 rounded-full"
-                />
-              </div>
-            </div>
-
-            {/* Max Price Filter */}
-            <div className="col-span-1">
-              <label htmlFor="max-price" className="sr-only">
-                Maximum price
-              </label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="max-price"
-                  type="number"
-                  placeholder="Max price"
-                  value={maxPrice || ""}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="pl-9 h-10 rounded-full"
-                />
-              </div>
-            </div>
-
-            {/* Clear Filters Button */}
-            <div className="col-span-1">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setTitleFilter("")
-                  setLocationFilter("")
-                  setMinPrice(0)
-                  setMaxPrice(10000000)
-                }}
-                className="w-full h-10 rounded-full gap-2"
-              >
-                <X className="h-4 w-4" />
-                Clear
+            <FiltersDrawer
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onClear={handleClearFilters}
+            >
+              <Button variant="outline" size="sm" className="gap-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
               </Button>
-            </div>
+            </FiltersDrawer>
           </div>
         </div>
 
