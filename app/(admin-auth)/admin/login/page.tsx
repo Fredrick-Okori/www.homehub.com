@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Home, Lock, Mail, AlertCircle, Eye, EyeOff } from "lucide-react"
 
 export default function AdminLoginPage() {
@@ -16,22 +18,44 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const router = useRouter()
+  const supabase = createClient()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        router.push("/dashboard")
+      }
+    }
+    checkUser()
+  }, [router, supabase.auth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    // Mock authentication - replace with real API
-    if (email === "admin@homehub.com" && password === "admin123") {
-      router.push("/dashboard")
-    } else {
-      setError("Invalid email or password. Try admin@homehub.com / admin123")
+      if (signInError) {
+        setError(signInError.message || "Invalid email or password")
+        setIsLoading(false)
+        return
+      }
+
+      if (data.user) {
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.")
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   return (
@@ -124,7 +148,7 @@ export default function AdminLoginPage() {
                 </Link>
               </div>
 
-              <button type="submit" className="w-full h-11 bg-white text-black hover:bg-zinc-200" disabled={isLoading}>
+              <Button type="submit" className="w-full h-11 bg-white text-black hover:bg-zinc-200" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -148,7 +172,7 @@ export default function AdminLoginPage() {
                 ) : (
                   "Sign In"
                 )}
-              </button>
+              </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
@@ -161,16 +185,6 @@ export default function AdminLoginPage() {
               </Link>
             </div>
 
-            {/* Demo credentials hint */}
-            <div className="mt-6 p-4 rounded-lg bg-zinc-800">
-              <p className="text-xs text-zinc-400 text-center">
-                <strong className="text-zinc-300">Demo Credentials:</strong>
-                <br />
-                Email: admin@homehub.com
-                <br />
-                Password: admin123
-              </p>
-            </div>
           </CardContent>
         </Card>
 

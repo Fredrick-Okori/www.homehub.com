@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useAuth } from '@/contexts/auth-context';
 import { StatCard, MetricCard } from '@/components/admin-stat-card';
 import { ActivityTimeline, QuickActions } from '@/components/admin-activity-timeline';
 import { ApplicationTable } from '@/components/application-table';
@@ -18,7 +19,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Eye,
-  Download
+  Download,
+  LogOut
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -108,6 +110,12 @@ const sampleApplications = [
 ];
 
 export default function DashboardPage() {
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -124,6 +132,10 @@ export default function DashboardPage() {
           <Button size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export Report
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
           </Button>
         </div>
       </div>

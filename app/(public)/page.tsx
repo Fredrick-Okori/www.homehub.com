@@ -1,7 +1,7 @@
 
 "use client"
 
-import { MapPin, DollarSign, Home as HomeIcon, Map, X } from "lucide-react"
+import { MapPin, DollarSign, Home as HomeIcon, Map as MapIcon, X, Loader2 } from "lucide-react"
 import { FiltersDrawer } from "@/components/filters-drawer"
 import { ListingCard } from "@/components/listing-card"
 import { ApplicationModal } from "@/components/application-modal"
@@ -9,7 +9,21 @@ import { useSearch } from "@/components/search-context"
 import { HeroSection } from "@/components/hero-section"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { getPresignedUrls } from "@/lib/s3-presigned"
+import { toggleLike, getUserLikes, getLikeCounts, getLikeCount } from "@/lib/likes"
+import { toast } from "sonner"
+
+interface Listing {
+  id: string;
+  title: string;
+  description: string | null;
+  images: string[] | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const mockListings = [
   {
@@ -136,31 +150,140 @@ const mockListings = [
 
 export default function Home() {
   const { searchTerm, setSearchTerm, filtersOpen, setFiltersOpen } = useSearch()
-  const [listings] = useState(mockListings)
-  const [likedListings, setLikedListings] = useState<number[]>([])
-  const [selectedApplication, setSelectedApplication] = useState<number | null>(null)
+  const [listings, setListings] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(true)
+  const [imageUrlMap, setImageUrlMap] = useState<Map<string, string>>(new Map())
+  const [likedListings, setLikedListings] = useState<string[]>([])
+  const [likeCounts, setLikeCounts] = useState<Map<string, number>>(new Map())
+  const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000])
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [titleFilter, setTitleFilter] = useState("")
   const [locationFilter, setLocationFilter] = useState("")
   const [minPrice, setMinPrice] = useState<number>(0)
   const [maxPrice, setMaxPrice] = useState<number>(10000000)
+  const supabase = createClient()
 
-  const toggleLike = (id: number) => {
-    setLikedListings((prev) => (prev.includes(id) ? prev.filter((lid) => lid !== id) : [...prev, id]))
+  // Fetch available listings from Supabase
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setLoading(true)
+        const { data, error } = await supabase
+          .from('listings')
+          .select('*')
+          .eq('status', 'available')
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching listings:', error)
+          return
+        }
+
+        setListings(data || [])
+
+        // Fetch pre-signed URLs for all images
+        if (data && data.length > 0) {
+          const allImageUrls: string[] = []
+          data.forEach((listing) => {
+            if (listing.images && listing.images.length > 0) {
+              allImageUrls.push(...listing.images)
+            }
+          })
+
+          if (allImageUrls.length > 0) {
+            try {
+              const urlMap = await getPresignedUrls(allImageUrls)
+              setImageUrlMap(urlMap)
+            } catch (error) {
+              console.error('Error fetching pre-signed URLs:', error)
+            }
+          }
+
+          // Fetch user likes and like counts
+          try {
+            const listingIds = data.map((l) => l.id)
+            // Fetch like counts first (this should work for public users)
+            const counts = await getLikeCounts(listingIds)
+            setLikeCounts(counts)
+            
+            // Try to fetch user likes (may fail if not authenticated, that's OK)
+            try {
+              const userLikes = await getUserLikes()
+              setLikedListings(userLikes)
+            } catch (userLikesError) {
+              // Silently fail for user likes if not authenticated
+              console.log('User not authenticated, skipping user likes fetch')
+            }
+          } catch (error) {
+            console.error('Error fetching likes:', error)
+            // Initialize empty counts map on error
+            const emptyCounts = new Map<string, number>()
+            data.forEach((l) => emptyCounts.set(l.id, 0))
+            setLikeCounts(emptyCounts)
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchListings()
+  }, [supabase])
+
+  const handleToggleLike = async (listingId: string) => {
+    try {
+      const isLiked = await toggleLike(listingId)
+      
+      // Update local state
+      setLikedListings((prev) => {
+        if (isLiked) {
+          return [...prev, listingId]
+        } else {
+          return prev.filter((id) => id !== listingId)
+        }
+      })
+
+      // Update like count
+      const newCount = await getLikeCount(listingId)
+      setLikeCounts((prev) => {
+        const updated = new Map(prev)
+        updated.set(listingId, newCount)
+        return updated
+      })
+
+      toast.success(isLiked ? 'Added to favorites' : 'Removed from favorites')
+    } catch (error: any) {
+      console.error('Error toggling like:', error)
+      // Provide more specific error messages
+      if (error.message?.includes('already liked')) {
+        toast.error('You have already liked this listing')
+      } else if (error.message) {
+        toast.error(error.message)
+      } else {
+        toast.error('Failed to update like. Please try again.')
+      }
+    }
+  }
+
+  // Helper to get first image with pre-signed URL
+  const getFirstImage = (images: string[] | null): string => {
+    if (images && images.length > 0) {
+      return imageUrlMap.get(images[0]) || images[0] || '/placeholder.svg'
+    }
+    return '/placeholder.svg'
   }
 
   const filteredListings = listings.filter((listing) => {
-    const matchesPrice = listing.price >= priceRange[0] && listing.price <= priceRange[1]
-    const matchesType = !selectedType || listing.type === selectedType
+    // Since we don't have price, location, beds, baths, area in DB, we'll filter only by title/search
     const matchesSearch =
       listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.location.toLowerCase().includes(searchTerm.toLowerCase())
+      (listing.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
     const matchesTitle = !titleFilter || listing.title.toLowerCase().includes(titleFilter.toLowerCase())
-    const matchesLocation = !locationFilter || listing.location.toLowerCase().includes(locationFilter.toLowerCase())
-    const matchesMinPrice = listing.price >= minPrice
-    const matchesMaxPrice = listing.price <= maxPrice
-    return matchesPrice && matchesType && matchesSearch && matchesTitle && matchesLocation && matchesMinPrice && matchesMaxPrice
+    // Location filter won't work since we don't have location in DB, but keep it for UI consistency
+    return matchesSearch && matchesTitle
   })
 
   return (
@@ -277,29 +400,40 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          {filteredListings.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              id={String(listing.id)}
-              title={listing.title}
-              price={listing.price}
-              location={listing.location}
-              beds={listing.beds}
-              baths={listing.baths}
-              area={listing.area}
-              image={listing.image}
-              type={listing.type as 'Buy' | 'Rent'}
-              isLiked={likedListings.includes(listing.id)}
-              onLike={toggleLike}
-              onApply={setSelectedApplication}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            {filteredListings.map((listing) => {
+              // Convert UUID to number for compatibility with ApplicationModal
+              const numericId = parseInt(listing.id.slice(0, 8), 16) || 0;
+              return (
+                <ListingCard
+                  key={listing.id}
+                  id={listing.id}
+                  title={listing.title}
+                  price={0} // Not in DB schema - will show "Price on request"
+                  location="" // Not in DB schema - will be hidden
+                  beds={0} // Not in DB schema - will be hidden
+                  baths={0} // Not in DB schema - will be hidden
+                  area={0} // Not in DB schema - will be hidden
+                  image={getFirstImage(listing.images)}
+                  type="Buy" // Default type
+                  isLiked={likedListings.includes(listing.id)}
+                  likeCount={likeCounts.get(listing.id) || 0}
+                  onLike={() => handleToggleLike(listing.id)}
+                  onApply={() => setSelectedApplication(String(numericId))}
+                />
+              );
+            })}
+          </div>
+        )}
 
         {filteredListings.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 py-12">
-            <Map className="mb-4 h-12 w-12 text-muted-foreground" />
+            <MapIcon className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-lg font-semibold text-foreground">No properties found</p>
             <p className="mt-2 text-muted-foreground">Try adjusting your filters</p>
           </div>
@@ -308,8 +442,12 @@ export default function Home() {
 
       <ApplicationModal
         isOpen={selectedApplication !== null}
-        listingId={selectedApplication}
-        listings={listings}
+        listingId={selectedApplication ? Number(selectedApplication) : null}
+        listings={listings.map((l) => ({
+          id: parseInt(l.id.slice(0, 8), 16) || 0, // Convert UUID to number for modal compatibility
+          title: l.title,
+          uuid: l.id, // Pass the actual UUID for database operations
+        }))}
         onClose={() => setSelectedApplication(null)}
       />
     </main>

@@ -1,4 +1,3 @@
-
 import Link from "next/link"
 import { Facebook, Twitter, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react"
 
@@ -53,9 +52,9 @@ export function Footer() {
                   List Your Property
                 </Link>
               </li>
-                <li>
-                <Link href="/dashboard" className="hover:text-white/80 transition-colors">
-                  Admin
+              <li>
+                <Link href="/admin/login" className="hover:text-white/80 transition-colors">
+                  Admin Login
                 </Link>
               </li>
             </ul>
