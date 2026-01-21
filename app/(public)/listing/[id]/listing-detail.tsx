@@ -65,7 +65,7 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   return (
     <main className="min-h-screen bg-white">
       {/* 1. TOP NAV */}
-      <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
+      <nav className="sticky top-0  bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
           <Link href="/">
             <Button variant="ghost" size="sm" className="gap-2 hover:bg-gray-100 rounded-full transition-colors">
