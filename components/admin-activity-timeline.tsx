@@ -12,9 +12,9 @@ export function ActivityTimeline({ className }: { className?: string }) {
   ]
 
   return (
-    <Card className={`p-0 bg-zinc-900 border-zinc-800 ${className || ""}`}>
-      <CardHeader className="p-4 border-b border-zinc-800">
-        <CardTitle className="text-white">Activity Timeline</CardTitle>
+    <Card className={`p-0 bg-white border-gray-200 shadow-sm ${className || ""}`}>
+      <CardHeader className="p-4 border-b border-gray-100">
+        <CardTitle className="text-gray-900">Activity Timeline</CardTitle>
       </CardHeader>
       <CardContent className="p-4">
         <div className="space-y-3">
@@ -22,9 +22,9 @@ export function ActivityTimeline({ className }: { className?: string }) {
             <div key={it.id} className="flex items-start gap-3">
               <div className="h-2 w-2 rounded-full bg-primary mt-2" />
               <div>
-                <p className="text-sm font-medium text-white">{it.title}</p>
-                <p className="text-xs text-zinc-400">{it.desc}</p>
-                <p className="text-[10px] text-zinc-500 mt-1">{it.time}</p>
+                <p className="text-sm font-medium text-gray-900">{it.title}</p>
+                <p className="text-xs text-gray-500">{it.desc}</p>
+                <p className="text-[10px] text-gray-400 mt-1">{it.time}</p>
               </div>
             </div>
           ))}
@@ -34,21 +34,5 @@ export function ActivityTimeline({ className }: { className?: string }) {
   )
 }
 
-export function QuickActions() {
-  return (
-    <Card className="bg-zinc-900 border-zinc-800">
-      <CardHeader className="p-4 border-b border-zinc-800">
-        <CardTitle className="text-white">Quick Actions</CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="flex flex-col gap-2">
-          <Button className="w-full">Create Listing</Button>
-          <Button variant="ghost" className="w-full">Review Applications</Button>
-          <Button variant="outline" className="w-full">Export Data</Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 export default ActivityTimeline
+

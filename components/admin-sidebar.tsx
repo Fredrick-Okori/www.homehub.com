@@ -3,14 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/auth-context';
 import {
   LayoutDashboard,
   ChevronLeft,
   ChevronRight,
   Sun,
-  Moon,
   Eye,
   LogOut,
   List,
@@ -20,7 +18,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,12 +32,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { SheetTitle } from './ui/sheet';
 
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const [mounted, setMounted] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(true);
@@ -100,15 +95,8 @@ export const AdminSidebar: React.FC = () => {
   const isApplicationActive = pathname.startsWith('/dashboard/applications');
 
   const handleNavigation = (path: string) => {
-    // Auto-close on mobile after navigation
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsOpen(false);
-    }
-  };
-
-  const toggleTheme = () => {
-    if (mounted) {
-      setTheme(theme === 'dark' ? 'light' : 'dark');
     }
   };
 
@@ -130,7 +118,7 @@ export const AdminSidebar: React.FC = () => {
       {/* Sidebar */}
       <aside
         className={`
-          bg-content1 border-r border-divider h-screen flex flex-col transition-all duration-300 z-50
+          bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 z-50 text-gray-900
           
           /* Mobile: Fixed position, slide in/out */
           fixed lg:sticky top-0
@@ -155,7 +143,6 @@ export const AdminSidebar: React.FC = () => {
             size="icon"
             className={`
               ${isOpen ? 'ml-auto' : 'mx-auto'}
-              /* Hide toggle button on mobile when sidebar is closed */
               ${!isOpen ? 'hidden lg:flex' : 'flex'}
             `}
             onClick={() => setIsOpen(!isOpen)}
@@ -184,14 +171,13 @@ export const AdminSidebar: React.FC = () => {
                     >
                       <Button
                         className={`w-full justify-start bg-transparent ${
-                          item.active ? 'bg-primary-100 text-primary' : ''
+                          item.active ? 'bg-primary/10 text-primary' : 'text-gray-600'
                         }`}
-                        color={item.active ? 'primary' : 'default'}
                         variant="ghost"
                       >
                         <item.icon
                           className={`mr-2 h-5 w-5 ${
-                            item.active ? 'text-primary' : 'text-muted-foreground'
+                            item.active ? 'text-primary' : 'text-gray-500'
                           }`}
                         />
                         {item.label}
@@ -206,12 +192,12 @@ export const AdminSidebar: React.FC = () => {
                               variant="ghost"
                               size="icon"
                               className={`w-full ${
-                                item.active ? 'bg-primary-100 text-primary' : ''
+                                item.active ? 'bg-primary/10 text-primary' : ''
                               }`}
                             >
                               <item.icon
                                 className={`h-5 w-5 ${
-                                  item.active ? 'text-primary' : 'text-muted-foreground'
+                                  item.active ? 'text-primary' : 'text-gray-500'
                                 }`}
                               />
                             </Button>
@@ -238,8 +224,8 @@ export const AdminSidebar: React.FC = () => {
                     >
                       <AccordionItem value="listings" className="border-none">
                         <AccordionTrigger
-                          className={`px-3 py-2 min-h-[48px] hover:bg-accent rounded-lg ${
-                            isListingActive ? 'text-primary' : ''
+                          className={`px-3 py-2 min-h-[48px] hover:bg-gray-100 rounded-lg ${
+                            isListingActive ? 'text-primary' : 'text-gray-600'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -247,7 +233,7 @@ export const AdminSidebar: React.FC = () => {
                               className={`h-5 w-5 ${
                                 isListingActive
                                   ? 'text-primary'
-                                  : 'text-muted-foreground'
+                                  : 'text-gray-500'
                               }`}
                             />
                             <span>Listings</span>
@@ -264,10 +250,9 @@ export const AdminSidebar: React.FC = () => {
                               <Button
                                 className={`w-full justify-start bg-transparent text-sm ${
                                   subItem.active
-                                    ? 'bg-primary-100 text-primary'
-                                    : 'text-muted-foreground'
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'text-gray-600'
                                 }`}
-                                color={subItem.active ? 'primary' : 'default'}
                                 size="sm"
                                 variant="ghost"
                               >
@@ -275,7 +260,7 @@ export const AdminSidebar: React.FC = () => {
                                   className={`mr-2 h-4 w-4 ${
                                     subItem.active
                                       ? 'text-primary'
-                                      : 'text-muted-foreground'
+                                      : 'text-gray-500'
                                   }`}
                                 />
                                 {subItem.label}
@@ -296,7 +281,7 @@ export const AdminSidebar: React.FC = () => {
                             size="icon"
                             className={`w-full ${
                               isListingActive
-                                ? 'bg-primary-100 text-primary'
+                                ? 'bg-primary/10 text-primary'
                                 : ''
                             }`}
                           >
@@ -304,7 +289,7 @@ export const AdminSidebar: React.FC = () => {
                               className={`h-5 w-5 ${
                                 isListingActive
                                   ? 'text-primary'
-                                  : 'text-muted-foreground'
+                                  : 'text-gray-500'
                               }`}
                             />
                           </Button>
@@ -343,8 +328,8 @@ export const AdminSidebar: React.FC = () => {
                     >
                       <AccordionItem value="applications" className="border-none">
                         <AccordionTrigger
-                          className={`px-3 py-2 min-h-[48px] hover:bg-accent rounded-lg ${
-                            isApplicationActive ? 'text-primary' : ''
+                          className={`px-3 py-2 min-h-[48px] hover:bg-gray-100 rounded-lg ${
+                            isApplicationActive ? 'text-primary' : 'text-gray-600'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -352,7 +337,7 @@ export const AdminSidebar: React.FC = () => {
                               className={`h-5 w-5 ${
                                 isApplicationActive
                                   ? 'text-primary'
-                                  : 'text-muted-foreground'
+                                  : 'text-gray-500'
                               }`}
                             />
                             <span>Applications</span>
@@ -369,10 +354,9 @@ export const AdminSidebar: React.FC = () => {
                               <Button
                                 className={`w-full justify-start bg-transparent text-sm ${
                                   subItem.active
-                                    ? 'bg-primary-100 text-primary'
-                                    : 'text-muted-foreground'
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'text-gray-600'
                                 }`}
-                                color={subItem.active ? 'primary' : 'default'}
                                 size="sm"
                                 variant="ghost"
                               >
@@ -380,7 +364,7 @@ export const AdminSidebar: React.FC = () => {
                                   className={`mr-2 h-4 w-4 ${
                                     subItem.active
                                       ? 'text-primary'
-                                      : 'text-muted-foreground'
+                                      : 'text-gray-500'
                                   }`}
                                 />
                                 {subItem.label}
@@ -401,7 +385,7 @@ export const AdminSidebar: React.FC = () => {
                             size="icon"
                             className={`w-full ${
                               isApplicationActive
-                                ? 'bg-primary-100 text-primary'
+                                ? 'bg-primary/10 text-primary'
                                 : ''
                             }`}
                           >
@@ -409,7 +393,7 @@ export const AdminSidebar: React.FC = () => {
                               className={`h-5 w-5 ${
                                 isApplicationActive
                                   ? 'text-primary'
-                                  : 'text-muted-foreground'
+                                  : 'text-gray-500'
                               }`}
                             />
                           </Button>
@@ -440,44 +424,27 @@ export const AdminSidebar: React.FC = () => {
 
         </div>
 
-        {/* Theme Toggle */}
+        {/* Light Mode Indicator (no toggle) */}
         <div className="px-2 mb-4">
           {isOpen ? (
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100">
               <div className="flex items-center gap-3">
-                {theme === 'dark' ? (
-                  <Moon className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <Sun className="h-5 w-5 text-muted-foreground" />
-                )}
-                <span className="text-sm font-medium text-foreground">
-                  {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                <Sun className="h-5 w-5 text-amber-500" />
+                <span className="text-sm font-medium text-gray-700">
+                  Light Mode
                 </span>
               </div>
-              <Switch
-                checked={theme === 'dark'}
-                onCheckedChange={toggleTheme}
-              />
             </div>
           ) : (
             <div className="hidden lg:block">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="w-full"
-                    onClick={toggleTheme}
-                  >
-                    {theme === 'dark' ? (
-                      <Moon className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <Sun className="h-5 w-5 text-muted-foreground" />
-                    )}
+                  <Button variant="ghost" size="icon" className="w-full">
+                    <Sun className="h-5 w-5 text-amber-500" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode</p>
+                  <p>Light Mode</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -491,13 +458,13 @@ export const AdminSidebar: React.FC = () => {
           {isOpen ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-accent transition-colors">
+                <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shrink-0">
                     <span className="text-sm font-medium">{userInitials}</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium truncate">{userName}</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs text-gray-500 truncate">
                       {userEmail}
                     </p>
                   </div>
@@ -507,7 +474,7 @@ export const AdminSidebar: React.FC = () => {
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{userName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-xs leading-none text-gray-500">
                       {userEmail}
                     </p>
                   </div>
@@ -534,7 +501,7 @@ export const AdminSidebar: React.FC = () => {
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{userName}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
+                      <p className="text-xs leading-none text-gray-500">
                         {userEmail}
                       </p>
                     </div>

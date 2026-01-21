@@ -18,15 +18,15 @@ export function StatCard({
   icon?: IconComponent
 }) {
   return (
-    <Card className="p-4 bg-zinc-900 border-zinc-800">
+    <Card className="p-4 bg-white border-gray-200 shadow-sm">
       <CardContent className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs text-zinc-400">{title}</p>
-          <p className="text-xl font-bold text-white mt-1">{value}</p>
+          <p className="text-xs text-gray-500">{title}</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
         </div>
         {Icon && (
-          <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-            <Icon className="h-5 w-5 text-white" />
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Icon className="h-5 w-5 text-primary" />
           </div>
         )}
       </CardContent>
@@ -55,15 +55,15 @@ export function MetricCard({
   }
 
   return (
-    <Card className="p-4 bg-zinc-900 border-zinc-800">
+    <Card className="p-4 bg-white border-gray-200 shadow-sm">
       <CardContent className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs text-zinc-400">{label}</p>
-          <p className="text-xl font-bold text-white mt-1">{value}</p>
-          {subValue && <p className="text-sm text-zinc-400">{subValue}</p>}
+          <p className="text-xs text-gray-500">{label}</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
+          {subValue && <p className="text-sm text-gray-500">{subValue}</p>}
         </div>
         {Icon && (
-          <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", color ? colorMap[color] : "bg-zinc-800") }>
+          <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", color ? colorMap[color] : "bg-gray-100") }>
             <Icon className="h-5 w-5" />
           </div>
         )}
@@ -73,3 +73,4 @@ export function MetricCard({
 }
 
 export default StatCard
+
