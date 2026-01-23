@@ -3,7 +3,7 @@
 import React, { useState, useEffect, memo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { getPresignedUrl } from "@/lib/s3-presigned"
+import { getPresignedUrl, getPresignedUrls } from "@/lib/s3-presigned"
 import {
   Heart,
   ChevronLeft,
@@ -20,10 +20,11 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ApplicationModal } from "@/components/application-modal"
 import { cn } from "@/lib/utils"
+import { getLikeCount, getUserLikes, toggleLike } from "@/lib/likes"
 
 interface ListingDetailClientProps {
   listing: {
-    id: number
+    id: string
     title: string
     price: number
     location: string
@@ -35,32 +36,82 @@ interface ListingDetailClientProps {
     fullDescription: string
     likes: number
     type: string
+    images?: string[]
   }
 }
 
 export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   const [isLiked, setIsLiked] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
-  const [imageUrl, setImageUrl] = useState<string>(listing.image)
-  const [loadingImage, setLoadingImage] = useState(true)
+  const [imageUrls, setImageUrls] = useState<Map<string, string>>(new Map())
+  const [loadingImages, setLoadingImages] = useState(true)
+  const [likeCount, setLikeCount] = useState<number>(listing.likes || 0)
+  const [loadingLikes, setLoadingLikes] = useState(true)
 
+  // Fetch like count and user like status on mount
   useEffect(() => {
-    const fetchPresignedUrl = async () => {
-      if (listing.image?.startsWith('http')) {
-        try {
-          const presignedUrl = await getPresignedUrl(listing.image)
-          setImageUrl(presignedUrl)
-        } catch (error) {
-          console.error('Error fetching pre-signed URL:', error)
-        } finally {
-          setLoadingImage(false)
-        }
-      } else {
-        setLoadingImage(false)
+    const fetchLikes = async () => {
+      try {
+        setLoadingLikes(true)
+        // Fetch like count
+        const count = await getLikeCount(listing.id)
+        setLikeCount(count)
+        
+        // Fetch user likes to check if this listing is liked
+        const userLikes = await getUserLikes()
+        setIsLiked(userLikes.includes(listing.id))
+      } catch (error) {
+        console.error('Error fetching likes:', error)
+      } finally {
+        setLoadingLikes(false)
       }
     }
-    fetchPresignedUrl()
-  }, [listing.image])
+    
+    fetchLikes()
+  }, [listing.id])
+
+  // Fetch pre-signed URLs for all images
+  useEffect(() => {
+    const fetchPresignedUrls = async () => {
+      if (listing.images && listing.images.length > 0) {
+        try {
+          setLoadingImages(true)
+          const urlMap = await getPresignedUrls(listing.images)
+          setImageUrls(urlMap)
+        } catch (error) {
+          console.error('Error fetching pre-signed URLs:', error)
+          // Fallback to original URLs
+          const fallbackMap = new Map<string, string>()
+          listing.images.forEach((url) => fallbackMap.set(url, url))
+          setImageUrls(fallbackMap)
+        } finally {
+          setLoadingImages(false)
+        }
+      } else {
+        setLoadingImages(false)
+      }
+    }
+    fetchPresignedUrls()
+  }, [listing.images])
+
+  const handleToggleLike = async () => {
+    const newLikedState = !isLiked
+    setIsLiked(newLikedState)
+    
+    try {
+      const result = await toggleLike(listing.id)
+      // Update like count based on toggle result
+      if (result) {
+        setLikeCount(prev => prev + 1)
+      } else {
+        setLikeCount(prev => Math.max(0, prev - 1))
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error)
+      // Revert on error
+      setIsLiked(!newLikedState)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -81,7 +132,7 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
               variant="ghost" 
               size="sm" 
               className="gap-2 underline font-semibold rounded-lg hover:bg-gray-100"
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={handleToggleLike}
             >
               <Heart className={cn("h-4 w-4 transition-colors", isLiked && "fill-[#FF385C] text-[#FF385C]")} />
               {isLiked ? "Saved" : "Save"}
@@ -107,20 +158,47 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
         </header>
 
         {/* 3. PHOTO GRID */}
-        <div className="relative mb-8 grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl h-[300px] md:h-[480px]">
-          <div className="col-span-4 row-span-2 relative md:col-span-2">
-             {loadingImage ? (
+        {listing.images && listing.images.length > 0 ? (
+          <div className="relative mb-8 grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl h-[300px] md:h-[480px]">
+            {/* Main large image (first image) */}
+            <div className="col-span-4 row-span-2 relative md:col-span-2">
+              {loadingImages ? (
                 <div className="h-full w-full animate-pulse bg-gray-100" />
-             ) : (
-                <Image src={imageUrl} alt="Main" fill priority className="object-cover hover:brightness-95 transition-all cursor-pointer" />
-             )}
-          </div>
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="hidden md:block relative bg-gray-100">
-              <Image src={imageUrl} alt={`View ${i + 1}`} fill className="object-cover hover:brightness-95 transition-all cursor-pointer" />
+              ) : (
+                <Image 
+                  src={imageUrls.get(listing.images[0]) || listing.images[0] || '/placeholder.svg'} 
+                  alt={listing.title} 
+                  fill 
+                  priority 
+                  className="object-cover hover:brightness-95 transition-all cursor-pointer" 
+                />
+              )}
             </div>
-          ))}
-        </div>
+            {/* Thumbnail images (remaining images, max 4) */}
+            {listing.images.slice(1, 5).map((imageUrl, index) => (
+              <div key={index} className="hidden md:block relative bg-gray-100">
+                {loadingImages ? (
+                  <div className="h-full w-full animate-pulse bg-gray-100" />
+                ) : (
+                  <Image 
+                    src={imageUrls.get(imageUrl) || imageUrl} 
+                    alt={`${listing.title} - View ${index + 2}`} 
+                    fill 
+                    className="object-cover hover:brightness-95 transition-all cursor-pointer" 
+                  />
+                )}
+              </div>
+            ))}
+            {/* Fill remaining slots if less than 4 additional images */}
+            {listing.images.length < 5 && Array.from({ length: Math.max(0, 4 - (listing.images.length - 1)) }).map((_, index) => (
+              <div key={`placeholder-${index}`} className="hidden md:block relative bg-gray-100" />
+            ))}
+          </div>
+        ) : (
+          <div className="relative mb-8 h-[300px] md:h-[480px] rounded-xl bg-gray-100 flex items-center justify-center">
+            <p className="text-muted-foreground">No images available</p>
+          </div>
+        )}
 
         {/* 4. MAIN LAYOUT GRID */}
         <div className="grid gap-12 lg:grid-cols-3 relative">
@@ -168,7 +246,7 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-medium text-[#222222]">
                       <Heart className={cn("h-4 w-4 transition-colors", isLiked ? "fill-[#FF385C] text-[#FF385C]" : "text-gray-400")} />
-                      <span>{isLiked ? listing.likes + 1 : listing.likes} Likes</span>
+                      <span>{loadingLikes ? '...' : likeCount.toLocaleString()} Likes</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm font-medium text-[#222222]">
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -177,14 +255,16 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
                   </div>
                   
                   {/* Number of Interests Badge */}
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex h-7 items-center justify-center rounded-full bg-red-50 px-3 text-[#FF385C] border border-red-100">
-                      <Users className="mr-2 h-3.5 w-3.5" />
-                      <span className="text-[11px] font-bold uppercase tracking-tight">
-                        {listing.likes + 4} people interested
-                      </span>
+                  {!loadingLikes && likeCount > 0 && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex h-7 items-center justify-center rounded-full bg-red-50 px-3 text-[#FF385C] border border-red-100">
+                        <Users className="mr-2 h-3.5 w-3.5" />
+                        <span className="text-[11px] font-bold uppercase tracking-tight">
+                          {likeCount} {likeCount === 1 ? 'person' : 'people'} interested
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* 3. PROPERTY SPECS BOX */}

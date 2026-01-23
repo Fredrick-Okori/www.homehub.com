@@ -47,7 +47,7 @@ export const AdminSidebar: React.FC = () => {
   }, []);
 
   // Get user data from auth context or use defaults
-  const userEmail = user?.email || 'admin@homehub.com';
+  const userEmail = user?.email || 'admin@homz.com';
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Admin User';
   const userInitials = user?.email
     ? user.email
@@ -135,7 +135,7 @@ export const AdminSidebar: React.FC = () => {
         <div className="flex items-center justify-between p-4">
           {isOpen && (
             <div className="flex text-bold">
-            <span className='font-bold text-xl'>Home</span><span className="text-primary text-xl font-bold">Hub</span>
+            <span className='font-bold text-xl'>Homz</span>
             </div>
           )}
           <Button

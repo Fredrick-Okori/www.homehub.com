@@ -15,14 +15,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!listing) {
     return {
-      title: "Listing Not Found | HomeHub",
+      title: "Listing Not Found | Homz",
       description: "The property you're looking for doesn't exist or is no longer available.",
     }
   }
 
   return {
-    title: listing.title ? `${listing.title} | HomeHub` : "Property Listing | HomeHub",
-    description: listing.description || "View this property on HomeHub - your modern real estate platform.",
+    title: listing.title ? `${listing.title} | Homz` : "Property Listing | Homz",
+    description: listing.description || "View this property on Homz - your modern real estate platform.",
     openGraph: {
       title: listing.title,
       description: listing.description,
@@ -64,7 +64,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   // Map database listing to component format
   const mappedListing = {
-    id: parseInt(listing.id.slice(0, 8), 16) || 0, // Convert UUID to number for compatibility
+    id: listing.id, // Use UUID string directly
     title: listing.title,
     price: 0, // Not in DB schema
     location: "Location not specified", // Not in DB schema
@@ -74,7 +74,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     image: listing.images && listing.images.length > 0 ? listing.images[0] : '/placeholder.svg',
     description: listing.description || '',
     fullDescription: listing.description || 'No description available.',
-    likes: 0, // Not in DB schema
+    likes: 0, // Will be fetched client-side
     type: "House", // Default type
     images: listing.images || [], // Pass all images for the detail view
   }

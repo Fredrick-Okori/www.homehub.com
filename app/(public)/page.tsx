@@ -156,7 +156,7 @@ export default function Home() {
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const { filtersOpen, setFiltersOpen } = useSearch()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), []) // Memoize to avoid recreating client on every render
 
   // Filter states
   const [priceRange, setPriceRange] = useState<number[]>([0, 10000000])
@@ -202,63 +202,82 @@ export default function Home() {
     const fetchListings = async () => {
       try {
         setLoading(true)
+        
+        // Fetch only the fields we need for better performance
+        const startTime = performance.now()
         const { data, error } = await supabase
           .from('listings')
-          .select('*')
+          .select('id, title, description, images, status, created_at, updated_at')
           .eq('status', 'available')
           .order('created_at', { ascending: false })
+          .limit(50) // Limit results for better performance
+
+        const queryTime = performance.now() - startTime
+        console.log(`Listings query took ${queryTime.toFixed(2)}ms`)
 
         if (error) {
           console.error('Error fetching listings:', error)
+          setLoading(false)
           return
         }
 
+        // Set listings immediately so they show up right away
         setListings(data || [])
+        setLoading(false) // Stop loading spinner as soon as listings are fetched
 
-        // Fetch pre-signed URLs for all images
+        // Fetch additional data in parallel (non-blocking)
         if (data && data.length > 0) {
-          const allImageUrls: string[] = []
+          const listingIds = data.map((l) => l.id)
+          
+          // Collect ONLY first image from each listing (main page only needs 1 image per listing)
+          const firstImageUrls: string[] = []
           data.forEach((listing) => {
             if (listing.images && listing.images.length > 0) {
-              allImageUrls.push(...listing.images)
+              firstImageUrls.push(listing.images[0]) // Only first image per listing
             }
           })
 
-          if (allImageUrls.length > 0) {
-            try {
-              const urlMap = await getPresignedUrls(allImageUrls)
-              setImageUrlMap(urlMap)
-            } catch (error) {
-              console.error('Error fetching pre-signed URLs:', error)
-            }
+          // Fetch everything in background (non-blocking) - don't await
+          // This allows listings to show immediately without waiting for images/likes
+          
+          // Fetch pre-signed URLs for first images only (non-blocking)
+          // Batch in chunks to avoid overwhelming the API
+          if (firstImageUrls.length > 0) {
+            // Fetch immediately without waiting
+            getPresignedUrls(firstImageUrls)
+              .then((urlMap) => {
+                setImageUrlMap(urlMap)
+                console.log(`Loaded ${urlMap.size} pre-signed URLs for listing cards`)
+              })
+              .catch((error) => {
+                console.error('Error fetching pre-signed URLs:', error)
+                // Fallback: use original URLs directly
+                const fallbackMap = new Map<string, string>()
+                firstImageUrls.forEach((url) => fallbackMap.set(url, url))
+                setImageUrlMap(fallbackMap)
+              })
           }
 
-          // Fetch user likes and like counts
-          try {
-            const listingIds = data.map((l) => l.id)
-            // Fetch like counts first (this should work for public users)
-            const counts = await getLikeCounts(listingIds)
-            setLikeCounts(counts)
-            
-            // Try to fetch user likes (may fail if not authenticated, that's OK)
-            try {
-              const userLikes = await getUserLikes()
-              setLikedListings(userLikes)
-            } catch (userLikesError) {
+          // Fetch like counts (non-blocking)
+          getLikeCounts(listingIds)
+            .then((counts) => setLikeCounts(counts))
+            .catch(() => {
+              // Initialize empty counts on error
+              const emptyCounts = new Map<string, number>()
+              listingIds.forEach((id) => emptyCounts.set(id, 0))
+              setLikeCounts(emptyCounts)
+            })
+
+          // Try to fetch user likes (non-blocking, may fail if not authenticated)
+          getUserLikes()
+            .then(setLikedListings)
+            .catch(() => {
               // Silently fail for user likes if not authenticated
               console.log('User not authenticated, skipping user likes fetch')
-            }
-          } catch (error) {
-            console.error('Error fetching likes:', error)
-            // Initialize empty counts map on error
-            const emptyCounts = new Map<string, number>()
-            data.forEach((l) => emptyCounts.set(l.id, 0))
-            setLikeCounts(emptyCounts)
-          }
+            })
         }
       } catch (error) {
         console.error('Error:', error)
-      } finally {
         setLoading(false)
       }
     }
@@ -328,7 +347,7 @@ export default function Home() {
     <main className="min-h-screen">
       <HeroSection />
 
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      <div id="listings" className="mx-auto max-w-7xl px-4 py-12">
         {/* Results Header */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground">Homes available</h2>
@@ -366,11 +385,15 @@ export default function Home() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
+        ) : filteredListings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 py-12">
+            <MapIcon className="mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-lg font-semibold text-foreground">No properties found</p>
+            <p className="mt-2 text-muted-foreground">Try adjusting your filters</p>
+          </div>
         ) : (
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             {filteredListings.map((listing) => {
-              // Convert UUID to number for compatibility with ApplicationModal
-              const numericId = parseInt(listing.id.slice(0, 8), 16) || 0;
               return (
                 <ListingCard
                   key={listing.id}
@@ -386,29 +409,20 @@ export default function Home() {
                   isLiked={likedListings.includes(listing.id)}
                   likeCount={likeCounts.get(listing.id) || 0}
                   onLike={() => handleToggleLike(listing.id)}
-                  onApply={() => setSelectedApplication(String(numericId))}
+                  onApply={() => setSelectedApplication(listing.id)}
                 />
               );
             })}
-          </div>
-        )}
-
-        {filteredListings.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 py-12">
-            <MapIcon className="mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-lg font-semibold text-foreground">No properties found</p>
-            <p className="mt-2 text-muted-foreground">Try adjusting your filters</p>
           </div>
         )}
       </div>
 
       <ApplicationModal
         isOpen={selectedApplication !== null}
-        listingId={selectedApplication ? Number(selectedApplication) : null}
+        listingId={selectedApplication}
         listings={listings.map((l) => ({
-          id: parseInt(l.id.slice(0, 8), 16) || 0, // Convert UUID to number for modal compatibility
+          id: l.id, // Use UUID string directly
           title: l.title,
-          uuid: l.id, // Pass the actual UUID for database operations
         }))}
         onClose={() => setSelectedApplication(null)}
       />

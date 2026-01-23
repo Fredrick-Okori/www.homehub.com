@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
               <Home className="h-5 w-5 text-black" />
             </div>
             <span className="text-2xl font-bold text-white">
-              Home<span className="text-zinc-400">Hub</span>
+              Homz
             </span>
           </Link>
           <p className="mt-2 text-sm text-zinc-400">Admin Dashboard Login</p>
@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@homehub.com"
+                    placeholder="admin@homz.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
@@ -190,7 +190,7 @@ export default function AdminLoginPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-zinc-500">
-          © 2024 HomeHub. All rights reserved.
+          © 2024 Homz. All rights reserved.
         </p>
       </div>
     </div>

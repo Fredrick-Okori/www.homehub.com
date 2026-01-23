@@ -14,7 +14,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({
   title = 'Dashboard',
   userName = 'Admin User',
-  userEmail = 'admin@homehub.com',
+  userEmail = 'admin@homz.com',
 }: DashboardHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 

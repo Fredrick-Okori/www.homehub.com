@@ -79,6 +79,7 @@ export const ListingCard = memo(function ListingCard({
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                 onError={() => setImgError(true)}
+                quality={75}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-secondary/30">

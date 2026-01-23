@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Search, MapPin, Home, Building2, Key, Users, X, Menu, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,7 +36,7 @@ function MobileNavSheet() {
       <SheetContent side="right" className="w-[280px] sm:w-[320px]">
         <SheetHeader className="pb-4 border-b">
           <SheetTitle className="text-lg font-bold">
-            Home<span className="text-primary">Hub</span>
+            Homz
           </SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-2 py-6">
@@ -56,7 +57,7 @@ function MobileNavSheet() {
         </nav>
         <div className="mt-auto pt-4 border-t">
           <div className="px-4 py-2 text-sm text-muted-foreground">
-            © 2024 HomeHub. All rights reserved.
+            © 2024 Homz. All rights reserved.
           </div>
         </div>
       </SheetContent>
@@ -67,9 +68,15 @@ function MobileNavSheet() {
 export function Header() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const { setFiltersOpen } = useSearch()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const mobileInputRef = useRef<HTMLInputElement>(null)
+
+  // Prevent hydration mismatch by only rendering expanded search after mount
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Close expanded search when clicking outside
   useEffect(() => {
@@ -110,9 +117,16 @@ export function Header() {
             
             {/* Logo and Nav Trigger row */}
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xl font-bold text-foreground">
-                Home<span className="text-primary">Hub</span>
-              </div>
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/images/kjk.webp"
+                  alt="Homz"
+                  width={120}
+                  height={40}
+                  className="h-8 w-auto object-contain"
+                  priority
+                />
+              </Link>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -132,9 +146,16 @@ export function Header() {
           <div className="hidden sm:flex sm:flex-row sm:items-center gap-4">
             {/* Logo */}
             <div className="flex items-center justify-start gap-2 flex-shrink-0">
-              <div className="text-xl sm:text-2xl font-bold text-foreground">
-                Home<span className="text-primary">Hub</span>
-              </div>
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/images/kjk.webp"
+                  alt="Homz"
+                  width={140}
+                  height={45}
+                  className="h-10 w-auto object-contain"
+                  priority
+                />
+              </Link>
             </div>
 
             {/* Navigation Items */}
@@ -163,30 +184,47 @@ export function Header() {
                 onClick={() => setIsSearchExpanded(true)}
               >
                 {/* Collapsed State - Airbnb Pill */}
-                <AnimatePresence mode="wait">
-                  {!isSearchExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center justify-between px-4 py-2.5 w-full"
-                    >
-                      <span className="text-sm font-medium text-foreground">Anywhere</span>
-                      <div className="h-4 w-[1px] bg-border mx-2" />
-                      <span className="text-sm font-medium text-foreground">Any week</span>
-                      <div className="h-4 w-[1px] bg-border mx-2" />
-                      <span className="text-sm text-muted-foreground">Add guests</span>
-                      <div className="ml-3 bg-[#f20051] rounded-full p-1.5">
-                        <Search className="h-3.5 w-3.5 text-white" />
+                {!isSearchExpanded && (
+                  <>
+                    {isMounted ? (
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key="collapsed"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center justify-between px-4 py-2.5 w-full"
+                        >
+                          <span className="text-sm font-medium text-foreground">Anywhere</span>
+                          <div className="h-4 w-[1px] bg-border mx-2" />
+                          <span className="text-sm font-medium text-foreground">Any week</span>
+                          <div className="h-4 w-[1px] bg-border mx-2" />
+                          <span className="text-sm text-muted-foreground">Add guests</span>
+                          <div className="ml-3 bg-[#f20051] rounded-full p-1.5">
+                            <Search className="h-3.5 w-3.5 text-white" />
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    ) : (
+                      <div className="flex items-center justify-between px-4 py-2.5 w-full">
+                        <span className="text-sm font-medium text-foreground">Anywhere</span>
+                        <div className="h-4 w-[1px] bg-border mx-2" />
+                        <span className="text-sm font-medium text-foreground">Any week</span>
+                        <div className="h-4 w-[1px] bg-border mx-2" />
+                        <span className="text-sm text-muted-foreground">Add guests</span>
+                        <div className="ml-3 bg-[#f20051] rounded-full p-1.5">
+                          <Search className="h-3.5 w-3.5 text-white" />
+                        </div>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    )}
+                  </>
+                )}
 
-                {/* Expanded State - Full Search Bar */}
-                <AnimatePresence>
-                  {isSearchExpanded && (
+                {/* Expanded State - Full Search Bar - Only render after mount to prevent hydration issues */}
+                {isMounted && isSearchExpanded && (
+                  <AnimatePresence>
                     <motion.div
+                      key="expanded"
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "100%" }}
                       exit={{ opacity: 0, width: 0 }}
@@ -206,14 +244,14 @@ export function Header() {
                             e.stopPropagation()
                             setIsSearchExpanded(false)
                           }}
-                          className="p-1 hover:bg-muted rounded-full transition-colors"
+                          className="p-1.5 bg-muted rounded-full transition-colors"
                         >
                           <X className="h-4 w-4 text-muted-foreground" />
                         </button>
                       </div>
                     </motion.div>
-                  )}
-                </AnimatePresence>
+                  </AnimatePresence>
+                )}
               </div>
             </div>
 

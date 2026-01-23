@@ -17,8 +17,8 @@ import { useRouter } from "next/navigation"
 
 interface ApplicationModalProps {
   isOpen: boolean
-  listingId: number | null
-  listings: Array<{ id: number; title: string; uuid?: string }> // Add uuid for actual listing ID
+  listingId: string | null
+  listings: Array<{ id: string; title: string; uuid?: string }> // id is now the UUID string
   onClose: () => void
 }
 
@@ -191,32 +191,15 @@ export function ApplicationModal({ isOpen, listingId, listings, onClose }: Appli
         urlIndex++
       }
 
-      // Get the actual listing UUID
+      // Get the listing (listingId is now the UUID string)
       const listing = listings.find((l) => l.id === listingId)
       if (!listing) {
         toast.error('Listing not found')
         return
       }
 
-      // If we have the UUID directly, use it; otherwise fetch from Supabase
-      let listingUuid: string
-      if (listing.uuid) {
-        listingUuid = listing.uuid
-      } else {
-        // Fetch the actual listing UUID from Supabase by title
-        const { data: listingData, error: listingError } = await supabase
-          .from('listings')
-          .select('id')
-          .eq('title', listing.title)
-          .eq('status', 'available')
-          .single()
-
-        if (listingError || !listingData) {
-          toast.error('Could not find listing in database')
-          return
-        }
-        listingUuid = listingData.id
-      }
+      // Use listingId directly as it's now the UUID string
+      const listingUuid: string = listingId
 
       // Prepare application data
       const applicationData = {

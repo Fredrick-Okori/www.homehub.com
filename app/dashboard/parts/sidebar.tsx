@@ -216,7 +216,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) 
             {isOpen && (
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold truncate">Admin User</p>
-                <p className="text-[10px] text-muted-foreground truncate">admin@homehub.com</p>
+                <p className="text-[10px] text-muted-foreground truncate">admin@homz.com</p>
               </div>
             )}
           </div>

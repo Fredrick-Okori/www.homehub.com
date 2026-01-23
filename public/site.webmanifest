@@ -1,6 +1,6 @@
 {
-  "name": "HomeHub",
-  "short_name": "HomeHub",
+  "name": "Homz",
+  "short_name": "Homz",
   "description": "Discover your perfect home with our curated collection of modern properties",
   "start_url": "/",
   "display": "standalone",

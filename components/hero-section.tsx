@@ -3,25 +3,25 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, Phone, Calendar } from "lucide-react"
+import { ArrowRight, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const slides = [
   {
-    src: "/images/Mountain_House_-_Between_Dream__amp__Reality.png",
-    alt: "Luxury mountain house",
+    src: "/images/IMG_5418.JPG",
+    alt: "Beautiful property",
     title: "Find Your Dream Home",
     subtitle: "Discover exceptional properties in prime locations",
   },
   {
-    src: "/images/Atlanta-Series.webp",
-    alt: "Modern Atlanta series home",
+    src: "/images/IMG_5435.JPG",
+    alt: "Modern property",
     title: "Luxury Living Redefined",
     subtitle: "Experience homes that exceed your expectations",
   },
   {
-    src: "/images/how-to-design-a-house.jpg",
-    alt: "Beautiful house design",
+    src: "/images/IMG_5436.JPG",
+    alt: "Elegant property",
     title: "Urban Living Made Simple",
     subtitle: "Find the perfect city home for your lifestyle",
   },
@@ -31,13 +31,7 @@ const quickActions = [
   {
     icon: <Phone className="w-5 h-5" />,
     label: "Call Us Now",
-    href: "tel:+1234567890",
-    color: "bg-[#f20051] hover:bg-[#d10044]",
-  },
-  {
-    icon: <Calendar className="w-5 h-5" />,
-    label: "Schedule Tour",
-    href: "#schedule",
+    href: "tel:+256755480170",
     color: "bg-[#f20051] hover:bg-[#d10044]",
   },
   {
@@ -47,7 +41,7 @@ const quickActions = [
       </svg>
     ),
     label: "WhatsApp",
-    href: "https://wa.me/1234567890",
+    href: "https://wa.me/256755480170",
     color: "bg-[#f20051] hover:bg-[#d10044]",
   },
 ]
@@ -122,7 +116,7 @@ export function HeroSection() {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
                   {slides[index].title}
                   <span className="block text-[#f20051] mt-2">
-                    HomeHub Today
+                    Homz Today
                   </span>
                 </h1>
 
@@ -138,17 +132,40 @@ export function HeroSection() {
             <div className="flex flex-wrap gap-4 justify-center mt-6">
               <Button
                 size="lg"
+                type="button"
                 className="bg-[#f20051] hover:bg-[#d10044] text-white rounded-full px-6 py-5 text-base font-semibold shadow-lg transition-colors"
+                onClick={() => {
+                  const scrollToListings = () => {
+                    const listingsSection = document.getElementById('listings')
+                    
+                    if (listingsSection) {
+                      // Get the header height to account for sticky header
+                      const header = document.querySelector('header')
+                      const headerHeight = header ? header.offsetHeight : 80
+                      
+                      // Calculate scroll position using getBoundingClientRect for accuracy
+                      const rect = listingsSection.getBoundingClientRect()
+                      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+                      const elementTop = rect.top + scrollTop
+                      const offsetPosition = elementTop - headerHeight - 20
+                      
+                      // Scroll to the position
+                      window.scrollTo({
+                        top: Math.max(0, offsetPosition),
+                        behavior: 'smooth'
+                      })
+                    }
+                  }
+                  
+                  // Try immediately, if element not found, wait a bit and try again
+                  scrollToListings()
+                  
+                  // Retry after a short delay in case DOM isn't ready
+                  setTimeout(scrollToListings, 100)
+                }}
               >
                 Browse Properties
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-[#f20051] text-[#f20051] hover:bg-[#f20051] hover:text-white rounded-full px-6 py-5 text-base transition-colors"
-              >
-                Schedule a Tour
               </Button>
             </div>
           </div>

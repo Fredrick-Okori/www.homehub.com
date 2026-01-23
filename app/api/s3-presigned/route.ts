@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Limit to prevent abuse
-    if (urls.length > 20) {
+    // Limit to prevent abuse (increased for listing pages)
+    if (urls.length > 50) {
       return NextResponse.json(
-        { error: 'Maximum 20 URLs allowed per request' },
+        { error: 'Maximum 50 URLs allowed per request' },
         { status: 400 }
       );
     }
