@@ -84,6 +84,17 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
       return
     }
 
+    // Set immediate fallback URLs so images can render right away
+    setImageUrls((prev) => {
+      const updated = new Map(prev)
+      images.forEach((url) => {
+        if (!updated.has(url)) {
+          updated.set(url, url)
+        }
+      })
+      return updated
+    })
+
     // Fetch first image quickly so it shows ASAP
     const fetchFirstImage = async () => {
       const firstImage = images[0]
@@ -219,29 +230,37 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
         {/* 3. PHOTO GRID */}
         {listing.images && listing.images.length > 0 ? (
           <>
-            {/* Mobile: Show all images in a scrollable horizontal gallery */}
-            <div className="mb-8 md:hidden">
-              <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                {listing.images.map((imageUrl, index) => {
-                  const imageSrc = imageUrls.get(imageUrl)
-                  return (
-                    <div key={index} className="relative flex-shrink-0 w-[85vw] max-w-[400px] h-[250px] sm:h-[300px] snap-center">
-                      {!imageSrc ? (
-                        <div className="h-full w-full animate-pulse bg-gray-100 rounded-xl" />
-                      ) : (
-                        <Image 
-                          src={imageSrc} 
-                          alt={`${listing.title} - View ${index + 1}`} 
-                          fill 
-                          priority={index === 0}
-                          className="object-contain rounded-xl" 
-                          sizes="85vw"
-                        />
-                      )}
+            {/* Mobile: Show all images stacked for easy viewing */}
+            <div className="mb-8 md:hidden" suppressHydrationWarning>
+              {!isMounted ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {listing.images.map((_, index) => (
+                    <div key={`mobile-skeleton-${index}`} className="relative w-full h-[240px] sm:h-[280px] rounded-xl bg-gray-100 overflow-hidden">
+                      <div className="h-full w-full animate-pulse bg-gray-100" />
                     </div>
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {listing.images.map((imageUrl, index) => {
+                    const imageSrc = imageUrls.get(imageUrl) || imageUrl || "/placeholder.svg"
+                    return (
+                      <div key={index} className="relative w-full h-[240px] sm:h-[280px] rounded-xl bg-gray-100 overflow-hidden">
+                        <img
+                          src={imageSrc}
+                          alt={`${listing.title} - View ${index + 1}`}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          className="h-full w-full object-contain"
+                          onError={(e) => {
+                            const target = e.currentTarget
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
               {/* Image counter */}
               <div className="mt-2 text-center text-sm text-gray-600">
                 {listing.images.length} {listing.images.length === 1 ? 'image' : 'images'}
@@ -252,7 +271,7 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
             <div className="hidden md:grid relative mb-8 grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl h-[480px]">
               {/* Main large image (first image) */}
               <div className="col-span-2 row-span-2 relative">
-                {!imageUrls.get(listing.images[0]) ? (
+                {!isMounted || !imageUrls.get(listing.images[0]) ? (
                   <div className="h-full w-full animate-pulse bg-gray-100" />
                 ) : (
                   <Image 
@@ -267,7 +286,7 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
               {/* Thumbnail images (remaining images, max 4) */}
               {listing.images.slice(1, 5).map((imageUrl, index) => (
                 <div key={index} className="relative bg-gray-100">
-                  {!imageUrls.get(imageUrl) ? (
+                  {!isMounted || !imageUrls.get(imageUrl) ? (
                     <div className="h-full w-full animate-pulse bg-gray-100" />
                   ) : (
                     <Image 
