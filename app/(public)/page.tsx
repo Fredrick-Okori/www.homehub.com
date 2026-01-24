@@ -323,7 +323,10 @@ export default function Home() {
   // Helper to get first image with pre-signed URL
   const getFirstImage = (images: string[] | null): string => {
     if (images && images.length > 0) {
-      return imageUrlMap.get(images[0]) || images[0] || '/placeholder.svg'
+      const originalUrl = images[0]
+      // Always use original URL as fallback if pre-signed URL isn't ready yet
+      // This ensures images show immediately even if pre-signing is still in progress
+      return imageUrlMap.get(originalUrl) || originalUrl || '/placeholder.svg'
     }
     return '/placeholder.svg'
   }

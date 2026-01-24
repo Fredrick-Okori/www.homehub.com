@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTheme } from 'next-themes';
 
 import {
   LayoutDashboard,
@@ -16,13 +15,10 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import {
   Accordion,
   AccordionContent,
@@ -38,7 +34,6 @@ interface AdminSidebarProps {
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // 1. Handle Hydration and Persistence
@@ -193,20 +188,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) 
         {/* Footer Area */}
         <div className="p-3 mt-auto space-y-4">
           <Separator />
-          
-          {/* Theme Toggle */}
-          <div className={cn("flex items-center", isOpen ? "justify-between px-2" : "justify-center")}>
-            {isOpen && (
-              <div className="flex items-center gap-2">
-                {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                <span className="text-sm font-medium">Dark Mode</span>
-              </div>
-            )}
-            <Switch
-              checked={theme === 'dark'}
-              onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            />
-          </div>
 
           {/* User Profile */}
           <div className={cn("flex items-center gap-3 p-2 rounded-lg bg-accent/50", !isOpen && "justify-center p-1")}>

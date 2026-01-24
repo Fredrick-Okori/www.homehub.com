@@ -71,14 +71,25 @@ export const ListingCard = memo(function ListingCard({
           <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
             {!imgError ? (
               <Image
-                src={image}
+                src={image || '/placeholder.svg'}
                 alt={title}
                 fill
                 priority={isPriority}
                 loading={isPriority ? 'eager' : 'lazy'}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
-                onError={() => setImgError(true)}
+                onError={(e) => {
+                  console.error('Image failed to load:', image)
+                  // Try to reload after a short delay in case pre-signed URL becomes available
+                  const target = e.target as HTMLImageElement
+                  if (target && image) {
+                    setTimeout(() => {
+                      target.src = image
+                    }, 1000)
+                  } else {
+                    setImgError(true)
+                  }
+                }}
                 quality={75}
               />
             ) : (

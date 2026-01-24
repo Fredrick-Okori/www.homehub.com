@@ -12,6 +12,7 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
     <ThemeProvider
       attribute="class"
       defaultTheme="light"
+      forcedTheme="light"
       enableSystem={false}
       disableTransitionOnChange
     >

@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { SlidersHorizontal } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface Filters {
   priceRange: number[]
@@ -31,10 +31,28 @@ interface FiltersDrawerProps {
 
 export function FiltersDrawer({ filters, onFiltersChange, onClear, children }: FiltersDrawerProps) {
   const [open, setOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleClear = () => {
     onClear()
     setOpen(false)
+  }
+
+  if (!isMounted) {
+    return (
+      <>
+        {children || (
+          <Button variant="outline" size="sm" className="gap-2" disabled aria-hidden="true">
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+          </Button>
+        )}
+      </>
+    )
   }
 
   return (

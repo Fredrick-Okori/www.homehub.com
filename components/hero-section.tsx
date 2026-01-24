@@ -16,7 +16,7 @@ const slides = [
   {
     src: "/images/IMG_5435.JPG",
     alt: "Modern property",
-    title: "Luxury Living Redefined",
+    title: "Modern Living Redefined",
     subtitle: "Experience homes that exceed your expectations",
   },
   {

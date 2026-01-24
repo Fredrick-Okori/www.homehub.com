@@ -18,8 +18,23 @@ const navItems = [
 ]
 
 // Mobile Navigation Sheet Component
-function MobileNavSheet() {
+function MobileNavSheet({ isMounted }: { isMounted: boolean }) {
   const [open, setOpen] = useState(false)
+
+  if (!isMounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 hover:bg-muted"
+        disabled
+        aria-hidden="true"
+      >
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle menu</span>
+      </Button>
+    )
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -137,7 +152,7 @@ export function Header() {
                   <SlidersHorizontal className="h-5 w-5" />
                   <span className="sr-only">Filters</span>
                 </Button>
-                <MobileNavSheet />
+                <MobileNavSheet isMounted={isMounted} />
               </div>
             </div>
           </div>
